@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>G111220060 | Users</title>
+    <title>SILAPOK POLDA JATENG</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('_img/favicon.ico') }}">
 
     <!-- Google Font: Source Sans Pro -->
@@ -180,68 +180,31 @@
                 </div>
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
-                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
-                        data-accordion="false">
-                        <!-- Add icons to the links using the .nav-icon class with font-awesome or any other icon font library -->
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                         <li class="nav-item">
-                            <a href="dashboard.html" class="nav-link">
+                            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-home"></i>
-                                <p>
-                                    Dashboard
-                                </p>
-                            </a>
-                            <a href="personil.html" class="nav-link">
-                                <i class="nav-icon fas fa-user"></i>
-                                <p>
-                                    Data Personil
-                                </p>
-                            </a>
-                            <a href="sprin.html" class="nav-link">
-                                <i class="nav-icon fas fa-file-alt"></i>
-                                <p>
-                                    Surat Perintah
-                                </p>
-                            </a>
-                            <a href="laporan.html" class="nav-link">
-                                <i class="nav-icon fas fa-chart-bar"></i>
-                                <p>
-                                    Laporan Kegiatan
-                                </p>
+                                <p>Dashboard</p>
                             </a>
                         </li>
-                        <!-- <li class="nav-item menu-open">
-                            <a href="#" class="nav-link active">
-                                <i class="nav-icon fas fa-copy"></i>
-                                <p>
-                                    Master
-                                    <i class="fas fa-angle-left right"></i>
-                                </p>
+                        <li class="nav-item">
+                            <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-user"></i>
+                                <p>Data Personil</p>
                             </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a class="nav-link active">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Data Personil</p>
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a class="nav-link active">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Surat Perintah</p>
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a class="nav-link active">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Laporan Kegiatan</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li> -->
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('sprin.index') }}" class="nav-link {{ request()->routeIs('sprin.*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-file-alt"></i>
+                                <p>Surat Perintah</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-bar"></i>
+                                <p>Laporan Kegiatan</p>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
                 <!-- /.sidebar-menu -->
@@ -254,10 +217,9 @@
         @yield('content')
         <!-- /.content-wrapper -->
         <footer class="main-footer">
-            <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-            All rights reserved.
+            <strong>BID TIK Polda Jateng</strong>
             <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 3.1.0
+                <b>2025</b>
             </div>
         </footer>
         <!-- Control Sidebar -->
