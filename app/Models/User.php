@@ -21,6 +21,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'nrp',
+        'pangkat',
+        'jabatan', 
+        'sub_bidang',
+        'role',
+        'foto_profile',
+        'is_active'
     ];
 
     /**
@@ -41,4 +48,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function suratPerintah()
+    {
+        return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user');
+    }
 }

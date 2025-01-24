@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SprinController;
+use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\LaporanController;
 
 /*
@@ -32,6 +33,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('sprin', SprinController::class);
     Route::resource('users', UserController::class);
-    Route::resource('laporan', LaporanController::class);
+    Route::resource('kegiatan', KegiatanController::class);
     // Add other protected routes here...
 });

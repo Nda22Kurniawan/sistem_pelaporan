@@ -44,7 +44,8 @@ class SprinController extends Controller
             'tanggal_surat' => 'required|date',
             'perihal' => 'required|string|max:255',
             'dasar_surat' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'personil' => 'required|array|min:1'
         ]);
 
         if ($request->hasFile('file')) {
@@ -53,7 +54,11 @@ class SprinController extends Controller
             $validated['file'] = $path;
         }
 
-        SuratPerintah::create($validated);
+        // Buat surat perintah
+        $sprin = SuratPerintah::create($validated);
+
+        // Attach personil
+        $sprin->users()->attach($request->personil);
 
         return redirect()->route('sprin.index')
             ->with('success', 'Surat Perintah berhasil dibuat');
@@ -96,21 +101,24 @@ class SprinController extends Controller
             'tanggal_surat' => 'required|date',
             'perihal' => 'required|string|max:255',
             'dasar_surat' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'personil' => 'required|array|min:1'
         ]);
 
         if ($request->hasFile('file')) {
-            // Delete old file if exists
             if ($sprin->file) {
                 Storage::disk('public')->delete($sprin->file);
             }
-            
+
             $file = $request->file('file');
             $path = $file->store('surat-perintah', 'public');
             $validated['file'] = $path;
         }
 
         $sprin->update($validated);
+
+        // Sync personil
+        $sprin->users()->sync($request->personil);
 
         return redirect()->route('sprin.index')
             ->with('success', 'Surat Perintah berhasil diperbarui');
@@ -124,11 +132,11 @@ class SprinController extends Controller
      */
     public function destroy(SuratPerintah $sprin)
     {
-        // Delete file if exists
         if ($sprin->file) {
             Storage::disk('public')->delete($sprin->file);
         }
-        
+
+        // Personil akan otomatis di-detach karena kita menggunakan onDelete('cascade')
         $sprin->delete();
 
         return redirect()->route('sprin.index')

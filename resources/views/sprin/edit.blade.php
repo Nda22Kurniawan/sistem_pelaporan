@@ -6,13 +6,13 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Tambah Surat Perintah</h1>
+                    <h1>Edit Surat Perintah</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('sprin.index') }}">Surat Perintah</a></li>
-                        <li class="breadcrumb-item active">Tambah Baru</li>
+                        <li class="breadcrumb-item active">Edit</li>
                     </ol>
                 </div>
             </div>
@@ -22,15 +22,16 @@
     <section class="content">
         <div class="container-fluid">
             <div class="card">
-                <form action="{{ route('sprin.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('sprin.update', $sprin->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
+                    @method('PUT')
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="nomor_surat" class="required">Nomor Surat</label>
                                     <input type="text" class="form-control @error('nomor_surat') is-invalid @enderror"
-                                        id="nomor_surat" name="nomor_surat" value="{{ old('nomor_surat') }}" required>
+                                        id="nomor_surat" name="nomor_surat" value="{{ old('nomor_surat', $sprin->nomor_surat) }}" required>
                                     @error('nomor_surat')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -39,7 +40,7 @@
                                 <div class="form-group">
                                     <label for="tanggal_surat" class="required">Tanggal Surat</label>
                                     <input type="date" class="form-control @error('tanggal_surat') is-invalid @enderror"
-                                        id="tanggal_surat" name="tanggal_surat" value="{{ old('tanggal_surat') }}" required>
+                                        id="tanggal_surat" name="tanggal_surat" value="{{ old('tanggal_surat', $sprin->tanggal_surat ? \Carbon\Carbon::parse($sprin->tanggal_surat)->format('Y-m-d') : '') }}" required>
                                     @error('tanggal_surat')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -48,7 +49,7 @@
                                 <div class="form-group">
                                     <label for="perihal" class="required">Perihal</label>
                                     <input type="text" class="form-control @error('perihal') is-invalid @enderror"
-                                        id="perihal" name="perihal" value="{{ old('perihal') }}" required>
+                                        id="perihal" name="perihal" value="{{ old('perihal', $sprin->perihal) }}" required>
                                     @error('perihal')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -57,7 +58,7 @@
                                 <div class="form-group">
                                     <label for="dasar_surat">Dasar Surat</label>
                                     <textarea class="form-control @error('dasar_surat') is-invalid @enderror"
-                                        id="dasar_surat" name="dasar_surat" rows="3">{{ old('dasar_surat') }}</textarea>
+                                        id="dasar_surat" name="dasar_surat" rows="3">{{ old('dasar_surat', $sprin->dasar_surat) }}</textarea>
                                     @error('dasar_surat')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -69,10 +70,19 @@
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input @error('file') is-invalid @enderror"
                                                 id="file" name="file" accept=".pdf,.doc,.docx">
-                                            <label class="custom-file-label" for="file">Pilih file</label>
+                                            <label class="custom-file-label" for="file">
+                                                {{ $sprin->file ? basename($sprin->file) : 'Pilih file' }}
+                                            </label>
                                         </div>
                                     </div>
                                     <small class="text-muted">Format: PDF, DOC, DOCX. Maksimal ukuran: 2MB</small>
+                                    @if($sprin->file)
+                                    <div class="mt-2">
+                                        <a href="{{ Storage::url($sprin->file) }}" target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file"></i> Lihat File Saat Ini
+                                        </a>
+                                    </div>
+                                    @endif
                                     @error('file')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -106,7 +116,7 @@
                                                         value="{{ $user->id }}"
                                                         data-name="{{ strtolower($user->name) }}"
                                                         data-nrp="{{ strtolower($user->nrp) }}"
-                                                        {{ in_array($user->id, old('personil', [])) ? 'checked' : '' }}>
+                                                        {{ in_array($user->id, old('personil', $sprin->users->pluck('id')->toArray())) ? 'checked' : '' }}>
                                                     <label class="custom-control-label" for="user{{ $user->id }}">
                                                         <span class="d-block">{{ $user->name }}</span>
                                                         <small class="text-muted">

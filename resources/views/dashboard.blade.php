@@ -90,16 +90,16 @@
                                     <tbody>
                                         @forelse($latestSprin ?? [] as $sprin)
                                         <tr>
-                                            <td>{{ $sprin->nomor }}</td>
-                                            <td>{{ $sprin->tanggal }}</td>
-                                            <td>{{ $sprin->kegiatan }}</td>
+                                            <td>{{ $sprin->nomor_surat }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($sprin->tanggal_surat)->format('d/m/Y') }}</td>
+                                            <td>{{ $sprin->perihal }}</td>
                                             <td>
                                                 @if($sprin->status === 'selesai')
-                                                    <span class="badge badge-success">Selesai</span>
+                                                <span class="badge badge-success">Selesai</span>
                                                 @elseif($sprin->status === 'proses')
-                                                    <span class="badge badge-warning">Proses</span>
+                                                <span class="badge badge-warning">Proses</span>
                                                 @else
-                                                    <span class="badge badge-danger">Belum Mulai</span>
+                                                <span class="badge badge-danger">Belum Mulai</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -135,8 +135,8 @@
                             <ul class="users-list clearfix">
                                 @forelse($latestUsers ?? [] as $user)
                                 <li>
-                                    <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}" 
-                                         alt="User Image" style="width: 80px; height: 80px; object-fit: cover;">
+                                    <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}"
+                                        alt="User Image" style="width: 80px; height: 80px; object-fit: cover;">
                                     <a class="users-list-name" href="#">{{ $user->name }}</a>
                                     <span class="users-list-date">{{ $user->pangkat }}</span>
                                 </li>
@@ -157,7 +157,7 @@
 @endsection
 
 <script>
-$(document).ready(function() {
-    // Tambahkan script khusus untuk dashboard jika diperlukan
-});
+    $(document).ready(function() {
+        // Tambahkan script khusus untuk dashboard jika diperlukan
+    });
 </script>

@@ -22,6 +22,11 @@ class SuratPerintah extends Model
     protected $casts = [
         'tanggal_surat' => 'date'
     ];
+    
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'surat_perintah_user');
+    }
 
     // Relationship with Kegiatan
     public function kegiatans()
