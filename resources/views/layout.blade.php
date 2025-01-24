@@ -137,8 +137,12 @@
                 </li>
                 <li>
                     <button class="btn dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown">
+                        @if(Auth::user()->foto_profile)
+                        <img src="{{ Auth::user()->foto_profile }}" alt="Profile" class="rounded-circle" width="35">
+                        @else
                         <img src="/assets/dist/img/user2-160x160.jpg" alt="Profile" class="rounded-circle" width="35">
-                        <span class="ms-2 d-none d-md-inline">John Doe</span>
+                        @endif
+                        <span class="ms-2 d-none d-md-inline">{{ Auth::user()->name }}</span>
                     </button>
                 </li>
             </ul>
@@ -157,15 +161,18 @@
             <!-- Sidebar -->
             <div class="sidebar">
                 <!-- Sidebar user panel (optional) -->
-                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <!-- <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                     <div class="image">
-                        <img src="/assets/dist/img/user2-160x160.jpg" class="img-circle elevation-2"
-                            alt="User Image">
+                        @if(Auth::user()->foto_profile)
+                        <img src="{{ Auth::user()->foto_profile }}" class="img-circle elevation-2" alt="User Image">
+                        @else
+                        <img src="/assets/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        @endif
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Nanda Dwi Kurniawan</a>
+                        <a href="#" class="d-block">{{ Auth::user()->name }}</a>
                     </div>
-                </div>
+                </div> -->
                 <!-- SidebarSearch Form -->
                 <div class="form-inline">
                     <div class="input-group" data-widget="sidebar-search">
@@ -200,7 +207,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                            <a href="{{ route('kegiatan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-chart-bar"></i>
                                 <p>Laporan Kegiatan</p>
                             </a>

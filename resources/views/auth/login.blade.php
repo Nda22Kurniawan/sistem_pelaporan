@@ -39,6 +39,7 @@
                 <img src="{{ asset('assets/dist/img/tik_polri.png') }}" alt="Logo TIK">
             </div>
             <div class="login-title">SILAPOK</div>
+            <div class="login-subtitle text-bold">(Sistem Laporan Kegiatan)</div>
             <div class="login-subtitle">Bid TIK Polda Jateng</div>
         </div>
 
