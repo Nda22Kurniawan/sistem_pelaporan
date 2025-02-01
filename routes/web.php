@@ -32,7 +32,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('sprin', SprinController::class);
+    Route::patch('/sprin/{sprin}/update-status', [SprinController::class, 'updateStatus'])->name('sprin.update_status');
+
     Route::resource('users', UserController::class);
     Route::resource('kegiatan', KegiatanController::class);
+    Route::patch('/kegiatan/{kegiatan}/update-status', [KegiatanController::class, 'updateStatus'])->name('kegiatan.update-status');
     // Add other protected routes here...
 });

@@ -88,7 +88,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse($latestSprin ?? [] as $sprin)
+                                        @forelse($latestSprin->take(5) ?? [] as $sprin)
                                         <tr>
                                             <td>{{ $sprin->nomor_surat }}</td>
                                             <td>{{ \Carbon\Carbon::parse($sprin->tanggal_surat)->format('d/m/Y') }}</td>
@@ -133,7 +133,7 @@
                         </div>
                         <div class="card-body p-0">
                             <ul class="users-list clearfix">
-                                @forelse($latestUsers ?? [] as $user)
+                                @forelse($latestUsers->take(3) ?? [] as $user)
                                 <li>
                                     <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}"
                                         alt="User Image" style="width: 80px; height: 80px; object-fit: cover;">

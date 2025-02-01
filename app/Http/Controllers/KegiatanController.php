@@ -31,8 +31,15 @@ class KegiatanController extends Controller
     // }
     public function create()
     {
-        $suratPerintahs = SuratPerintah::all();
+        // Get Surat Perintah that don't have associated Laporan Kegiatan yet
+        $suratPerintahs = SuratPerintah::whereNotExists(function ($query) {
+            $query->select('id')
+                ->from('kegiatans')
+                ->whereColumn('surat_perintah_id', 'surat_perintahs.id');
+        })->get();
+
         $users = User::all();
+
         return view('kegiatan.create', compact('suratPerintahs', 'users'));
     }
 
@@ -96,7 +103,7 @@ class KegiatanController extends Controller
                 ->with('success', 'Laporan Kegiatan berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Delete any uploaded images if transaction fails
             if (!empty($imageUploads)) {
                 foreach ($imageUploads as $imagePath) {
@@ -127,7 +134,7 @@ class KegiatanController extends Controller
     // {
     //     $suratPerintahs = SuratPerintah::where('status', 'aktif')->get();
     //     $users = User::all();
-        
+
     //     // Decode image paths
     //     $kegiatan->image = $kegiatan->image ? json_decode($kegiatan->image) : [];
 
@@ -137,7 +144,7 @@ class KegiatanController extends Controller
     {
         $suratPerintahs = SuratPerintah::all();
         $users = User::all();
-        
+
         // Decode image paths
         $kegiatan->image = $kegiatan->image ? json_decode($kegiatan->image) : [];
 
@@ -148,85 +155,106 @@ class KegiatanController extends Controller
      * Update the specified activity report in storage.
      */
     public function update(Request $request, Kegiatan $kegiatan)
-{
-    // Validate the request
-    $validatedData = $request->validate([
-        'surat_perintah_id' => 'required|exists:surat_perintahs,id',
-        'nama_kegiatan' => 'required|string|max:255',
-        'deskripsi' => 'nullable|string',
-        'tanggal_mulai' => 'required|date',
-        'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-        'lokasi' => 'required|string|max:255',
-        'penanggung_jawab' => 'required|array|min:1',
-        'penanggung_jawab.*' => 'exists:users,id',
-        'jumlah_peserta' => 'nullable|integer|min:0',
-        'hasil_kegiatan' => 'nullable|string',
-        'kesimpulan' => 'nullable|string',
-        'image' => 'nullable|array',
-        'image.*' => 'image|mimes:jpeg,png,jpg|max:2048',
-        'remove_images' => 'nullable|array'
-    ]);
-
-    DB::beginTransaction();
-    try {
-        // Process existing images
-        $existingImages = json_decode($kegiatan->image, true) ?? [];
-
-        // Remove selected images
-        if ($request->has('remove_images')) {
-            foreach ($request->remove_images as $imageToRemove) {
-                Storage::disk('public')->delete($imageToRemove);
-                $existingImages = array_diff($existingImages, [$imageToRemove]);
-            }
-        }
-
-        // Upload new images
-        if ($request->hasFile('image')) {
-            foreach ($request->file('image') as $file) {
-                $path = $file->store('kegiatan_dokumentasi', 'public');
-                $existingImages[] = $path;
-            }
-        }
-
-        // Convert penanggung_jawab to comma-separated string of user names
-        $penanggungJawabNames = User::whereIn('id', $validatedData['penanggung_jawab'])
-            ->pluck('name')
-            ->implode(', ');
-
-        // Update the Kegiatan record
-        $kegiatan->update([
-            'surat_perintah_id' => $validatedData['surat_perintah_id'],
-            'nama_kegiatan' => $validatedData['nama_kegiatan'],
-            'deskripsi' => $validatedData['deskripsi'] ?? null,
-            'tanggal_mulai' => $validatedData['tanggal_mulai'],
-            'tanggal_selesai' => $validatedData['tanggal_selesai'],
-            'lokasi' => $validatedData['lokasi'],
-            'penanggung_jawab' => $penanggungJawabNames,
-            'jumlah_peserta' => $validatedData['jumlah_peserta'] ?? null,
-            'hasil_kegiatan' => $validatedData['hasil_kegiatan'] ?? null,
-            'kesimpulan' => $validatedData['kesimpulan'] ?? null,
-            'image' => $existingImages ? json_encode($existingImages) : null
+    {
+        // Validate the request
+        $validatedData = $request->validate([
+            'surat_perintah_id' => 'required|exists:surat_perintahs,id',
+            'nama_kegiatan' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'lokasi' => 'required|string|max:255',
+            'penanggung_jawab' => 'required|array|min:1',
+            'penanggung_jawab.*' => 'exists:users,id',
+            'jumlah_peserta' => 'nullable|integer|min:0',
+            'hasil_kegiatan' => 'nullable|string',
+            'kesimpulan' => 'nullable|string',
+            'image' => 'nullable|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'remove_images' => 'nullable|array'
         ]);
 
-        DB::commit();
+        DB::beginTransaction();
+        try {
+            // Process existing images
+            $existingImages = json_decode($kegiatan->image, true) ?? [];
 
-        return redirect()->route('kegiatan.index')
-            ->with('success', 'Laporan Kegiatan berhasil diperbarui.');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        
-        // Delete any newly uploaded images if transaction fails
-        if (isset($newImages)) {
-            foreach ($newImages as $imagePath) {
-                Storage::disk('public')->delete($imagePath);
+            // Remove selected images
+            if ($request->has('remove_images')) {
+                foreach ($request->remove_images as $imageToRemove) {
+                    Storage::disk('public')->delete($imageToRemove);
+                    $existingImages = array_diff($existingImages, [$imageToRemove]);
+                }
+            }
+
+            // Upload new images
+            if ($request->hasFile('image')) {
+                foreach ($request->file('image') as $file) {
+                    $path = $file->store('kegiatan_dokumentasi', 'public');
+                    $existingImages[] = $path;
+                }
+            }
+
+            // Convert penanggung_jawab to comma-separated string of user names
+            $penanggungJawabNames = User::whereIn('id', $validatedData['penanggung_jawab'])
+                ->pluck('name')
+                ->implode(', ');
+
+            // Update the Kegiatan record
+            $kegiatan->update([
+                'surat_perintah_id' => $validatedData['surat_perintah_id'],
+                'nama_kegiatan' => $validatedData['nama_kegiatan'],
+                'deskripsi' => $validatedData['deskripsi'] ?? null,
+                'tanggal_mulai' => $validatedData['tanggal_mulai'],
+                'tanggal_selesai' => $validatedData['tanggal_selesai'],
+                'lokasi' => $validatedData['lokasi'],
+                'penanggung_jawab' => $penanggungJawabNames,
+                'jumlah_peserta' => $validatedData['jumlah_peserta'] ?? null,
+                'hasil_kegiatan' => $validatedData['hasil_kegiatan'] ?? null,
+                'kesimpulan' => $validatedData['kesimpulan'] ?? null,
+                'image' => $existingImages ? json_encode($existingImages) : null
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('kegiatan.index')
+                ->with('success', 'Laporan Kegiatan berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Delete any newly uploaded images if transaction fails
+            if (isset($newImages)) {
+                foreach ($newImages as $imagePath) {
+                    Storage::disk('public')->delete($imagePath);
+                }
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui Laporan Kegiatan: ' . $e->getMessage());
+        }
+    }
+
+    public function updateStatus(Request $request, Kegiatan $kegiatan)
+    {
+        $request->validate([
+            'status' => 'required|in:Diterima,Ditolak'
+        ]);
+
+        $kegiatan->status = $request->status;
+        $kegiatan->save();
+
+        // Jika status Diterima, update status Surat Perintah menjadi selesai
+        if ($request->status === 'Diterima') {
+            $suratPerintah = SuratPerintah::where('nomor_surat', $kegiatan->suratPerintah->nomor_surat)->first();
+            if ($suratPerintah) {
+                $suratPerintah->status = 'selesai';
+                $suratPerintah->save();
             }
         }
 
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Gagal memperbarui Laporan Kegiatan: ' . $e->getMessage());
+        return redirect()->back()->with('success', 'Status laporan kegiatan berhasil diperbarui');
     }
-}
 
     /**
      * Remove the specified activity report from storage.

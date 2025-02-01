@@ -14,7 +14,7 @@ class Kegiatan extends Model
         'tanggal_selesai',
         'lokasi',
         'penanggung_jawab',
-        'jumlah_peserta',
+        // 'jumlah_peserta',
         'hasil_kegiatan',
         'kesimpulan',
         'image'

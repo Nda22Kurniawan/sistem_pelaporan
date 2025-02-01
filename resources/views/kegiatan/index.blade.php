@@ -53,7 +53,10 @@
                                         <th>Tanggal</th>
                                         <th>Lokasi</th>
                                         <th>Penanggung Jawab</th>
+                                        <th>Status</th>
+                                        @if(auth()->user()->role !== 'KEPALA BIDANG')
                                         <th>Aksi</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -84,6 +87,35 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if(auth()->user()->role === 'KEPALA BIDANG' && $kegiatan->status === 'Review')
+                                            <div class="btn-group">
+                                                <form action="{{ route('kegiatan.update-status', $kegiatan->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="status" value="Diterima">
+                                                    <button type="submit" class="btn btn-sm status-btn">
+                                                        <i class="fas fa-check text-success"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('kegiatan.update-status', $kegiatan->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="status" value="Ditolak">
+                                                    <button type="submit" class="btn btn-sm status-btn">
+                                                        <i class="fas fa-times text-danger"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            @elseif($kegiatan->status === 'Diterima')
+                                            <span class="badge badge-success">Diterima</span>
+                                            @elseif($kegiatan->status === 'Ditolak')
+                                            <span class="badge badge-danger">Ditolak</span>
+                                            @elseif($kegiatan->status === 'Review' && auth()->user()->role !== 'KEPALA BIDANG')
+                                            <span class="badge badge-warning">Review</span>
+                                            @endif
+                                        </td>
+                                        @if(auth()->user()->role !== 'KEPALA BIDANG')
+                                        <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('kegiatan.show', $kegiatan->id) }}" class="btn btn-info btn-sm">
                                                     <i class="fas fa-eye"></i>
@@ -100,6 +132,7 @@
                                                 </form>
                                             </div>
                                         </td>
+                                        @endif
                                     </tr>
                                     @empty
                                     <tr>
@@ -136,6 +169,28 @@
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        $('.btn-success, .btn-danger, .btn-sm').on('click', function(e) {
+            e.preventDefault();
+            var form = $(this).closest('form');
+            var status = form.find('input[name="status"]').val();
+            var actionText = status === 'Diterima' ? 'menyetujui' : 'menolak';
+
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: `Anda akan ${actionText} laporan kegiatan ini!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, lanjutkan!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {

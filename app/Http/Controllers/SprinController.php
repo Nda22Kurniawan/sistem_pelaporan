@@ -27,6 +27,12 @@ class SprinController extends Controller
      */
     public function create()
     {
+        // Check user role for create action
+        if (!in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk membuat surat perintah.');
+        }
+
         $users = User::where('is_active', true)->get();
         return view('sprin.create', compact('users'));
     }
@@ -39,6 +45,11 @@ class SprinController extends Controller
      */
     public function store(Request $request)
     {
+        if (!in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk membuat surat perintah.');
+        }
+
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:255',
             'tanggal_surat' => 'required|date',
@@ -54,10 +65,7 @@ class SprinController extends Controller
             $validated['file'] = $path;
         }
 
-        // Buat surat perintah
         $sprin = SuratPerintah::create($validated);
-
-        // Attach personil
         $sprin->users()->attach($request->personil);
 
         return redirect()->route('sprin.index')
@@ -83,6 +91,12 @@ class SprinController extends Controller
      */
     public function edit(SuratPerintah $sprin)
     {
+        // Check user role for edit action
+        if (!in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk mengedit surat perintah.');
+        }
+
         $users = User::where('is_active', true)->get();
         return view('sprin.edit', compact('sprin', 'users'));
     }
@@ -96,6 +110,12 @@ class SprinController extends Controller
      */
     public function update(Request $request, SuratPerintah $sprin)
     {
+
+        if (!in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk mengupdate surat perintah.');
+        }
+
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:255',
             'tanggal_surat' => 'required|date',
@@ -116,12 +136,36 @@ class SprinController extends Controller
         }
 
         $sprin->update($validated);
-
-        // Sync personil
         $sprin->users()->sync($request->personil);
 
         return redirect()->route('sprin.index')
             ->with('success', 'Surat Perintah berhasil diperbarui');
+    }
+
+    /**
+     * Update the status of a specific surat perintah
+     *
+     * @param  \App\Models\SuratPerintah  $sprin
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateStatus(SuratPerintah $sprin)
+    {
+        // Check user role for status update
+        if (!in_array(auth()->user()->role, ['KEPALA SUB BIDANG', 'ANGGOTA'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk mengubah status surat perintah.');
+        }
+
+        // Only allow changing from 'belum_mulai' to 'proses'
+        if ($sprin->status !== 'belum_mulai') {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Status surat perintah tidak dapat diubah.');
+        }
+
+        $sprin->update(['status' => 'proses']);
+
+        return redirect()->route('sprin.index')
+            ->with('success', 'Status Surat Perintah berhasil diperbarui');
     }
 
     /**
@@ -132,11 +176,17 @@ class SprinController extends Controller
      */
     public function destroy(SuratPerintah $sprin)
     {
+        // Check user role for destroy action
+        if (!in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG'])) {
+            return redirect()->route('sprin.index')
+                ->with('error', 'Anda tidak memiliki izin untuk menghapus surat perintah.');
+        }
+
+        // Existing destroy logic remains the same
         if ($sprin->file) {
             Storage::disk('public')->delete($sprin->file);
         }
 
-        // Personil akan otomatis di-detach karena kita menggunakan onDelete('cascade')
         $sprin->delete();
 
         return redirect()->route('sprin.index')
