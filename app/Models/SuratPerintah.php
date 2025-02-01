@@ -16,13 +16,14 @@ class SuratPerintah extends Model
         'tanggal_surat',
         'perihal',
         'dasar_surat',
-        'file'
+        'file',
+        'status'
     ];
 
     protected $casts = [
         'tanggal_surat' => 'date'
     ];
-    
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'surat_perintah_user');

@@ -23,11 +23,13 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Data Surat Perintah</h3>
+                    @if(in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG']))
                     <div class="card-tools">
                         <a href="{{ route('sprin.create') }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus"></i> Buat Baru
                         </a>
                     </div>
+                    @endif
                 </div>
                 <div class="card-body">
                     <table id="sprinTable" class="table table-bordered table-striped">
@@ -54,7 +56,7 @@
                                     @if($sprin->users->count() > 0)
                                     @foreach($sprin->users as $user)
                                     <span class="badge badge-info">
-                                    {{ $user->pangkat }} - {{ $user->name }}
+                                        {{ $user->pangkat }} - {{ $user->name }}
                                         @if($user->nrp)
                                         ({{ $user->nrp }})
                                         @endif
@@ -87,6 +89,7 @@
                                         <a href="{{ route('sprin.show', $sprin->id) }}" class="btn btn-info btn-sm" title="Lihat Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @if(in_array(auth()->user()->role, ['KEPALA BIDANG', 'KEPALA SUB BIDANG']))
                                         <a href="{{ route('sprin.edit', $sprin->id) }}" class="btn btn-warning btn-sm" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -98,6 +101,16 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endif
+                                        @if(in_array(auth()->user()->role, ['KEPALA SUB BIDANG', 'ANGGOTA']) && $sprin->status === 'belum_mulai')
+                                        <form action="{{ route('sprin.update_status', $sprin->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-success btn-sm ml-1" title="Ubah Status ke Proses">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
