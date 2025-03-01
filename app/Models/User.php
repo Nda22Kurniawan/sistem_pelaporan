@@ -23,7 +23,7 @@ class User extends Authenticatable
         'password',
         'nrp',
         'pangkat',
-        'jabatan', 
+        'jabatan',
         'sub_bidang',
         'role',
         'foto_profile',
@@ -51,6 +51,6 @@ class User extends Authenticatable
 
     public function suratPerintah()
     {
-        return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user');
+        return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user', 'user_id', 'surat_perintah_id');
     }
 }
