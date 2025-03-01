@@ -53,12 +53,12 @@
                                 <td>{{ \Carbon\Carbon::parse($sprin->tanggal_surat)->format('d/m/Y') }}</td>
                                 <td>{{ $sprin->perihal }}</td>
                                 <td>
-                                    @if($sprin->users->count() > 0)
-                                    @foreach($sprin->users as $user)
+                                    @if($sprin->penerima->count() > 0)
+                                    @foreach($sprin->penerima as $penerima)
                                     <span class="badge badge-info">
-                                        {{ $user->pangkat }} - {{ $user->name }}
-                                        @if($user->nrp)
-                                        ({{ $user->nrp }})
+                                        {{ $penerima->pangkat }} - {{ $penerima->name }}
+                                        @if($penerima->nrp)
+                                        ({{ $penerima->nrp }})
                                         @endif
                                     </span><br>
                                     @endforeach

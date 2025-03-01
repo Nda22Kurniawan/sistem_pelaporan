@@ -16,9 +16,21 @@ class SprinController extends Controller
      */
     public function index()
     {
-        $sprins = SuratPerintah::latest()->get();
+        $user = auth()->user();
+
+        if ($user->role === 'ANGGOTA') {
+            // Hanya tampilkan surat perintah yang diberikan kepada anggota yang login
+            $sprins = SuratPerintah::whereHas('penerima', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->latest()->get();
+        } else {
+            // Admin bisa melihat semua surat perintah
+            $sprins = SuratPerintah::latest()->get();
+        }
+
         return view('sprin.index', compact('sprins'));
     }
+
 
     /**
      * Show the form for creating a new sprin.

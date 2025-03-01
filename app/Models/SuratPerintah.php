@@ -34,4 +34,9 @@ class SuratPerintah extends Model
     {
         return $this->hasMany(Kegiatan::class);
     }
+
+    public function penerima()
+    {
+        return $this->belongsToMany(User::class, 'surat_perintah_user', 'surat_perintah_id', 'user_id');
+    }
 }

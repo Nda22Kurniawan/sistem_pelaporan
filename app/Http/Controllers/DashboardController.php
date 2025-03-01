@@ -32,14 +32,17 @@ class DashboardController extends Controller
             'activeUsers' => User::where('is_active', true)->count(),
             'totalSprin' => SuratPerintah::count(),
             'totalLaporan' => Kegiatan::count(), // Sesuaikan dengan model Laporan jika ada
-            'latestSprin' => SuratPerintah::latest()
-                ->take(5)
-                ->get(), // Hapus select dengan alias
+            'latestSprin' => Auth::user()->role === 'ANGGOTA'
+                ? SuratPerintah::whereHas('penerima', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })->latest()->take(5)->get()
+                : SuratPerintah::latest()->take(5)->get(),
+            // Hapus select dengan alias
             'latestUsers' => User::latest()
                 ->take(8)
                 ->get()
         ];
-    
+
         return view('dashboard', $data);
     }
 }
