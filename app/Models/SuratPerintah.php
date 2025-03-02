@@ -30,13 +30,14 @@ class SuratPerintah extends Model
     }
 
     // Relationship with Kegiatan
-    public function kegiatans()
-    {
-        return $this->hasMany(Kegiatan::class);
-    }
-
     public function penerima()
     {
-        return $this->belongsToMany(User::class, 'surat_perintah_user', 'surat_perintah_id', 'user_id');
+        return $this->belongsToMany(User::class, 'surat_perintah_user', 'surat_perintah_id', 'user_id')->withPivot('is_approved');
+    }
+
+    // Mengecek apakah semua anggota telah menyetujui surat
+    public function isFullyApproved()
+    {
+        return $this->penerima()->wherePivot('is_approved', false)->count() === 0;
     }
 }

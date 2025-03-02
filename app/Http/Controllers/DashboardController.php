@@ -30,7 +30,11 @@ class DashboardController extends Controller
         $data = [
             'totalUsers' => User::count(),
             'activeUsers' => User::where('is_active', true)->count(),
-            'totalSprin' => SuratPerintah::count(),
+            'totalSprin' => Auth::user()->role === 'ANGGOTA'
+                ? SuratPerintah::whereHas('penerima', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })->count()
+                : SuratPerintah::count(),
             'totalLaporan' => Kegiatan::count(), // Sesuaikan dengan model Laporan jika ada
             'latestSprin' => Auth::user()->role === 'ANGGOTA'
                 ? SuratPerintah::whereHas('penerima', function ($query) {
