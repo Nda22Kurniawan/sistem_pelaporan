@@ -83,7 +83,7 @@
                                 <div class="form-group">
                                     <label class="required">Personil</label>
                                     <div class="input-group mb-3">
-                                        <input type="text" class="form-control" id="searchPersonil" 
+                                        <input type="text" class="form-control" id="searchPersonil"
                                             placeholder="Cari berdasarkan nama atau NRP...">
                                         <div class="input-group-append">
                                             <span class="input-group-text">
@@ -94,21 +94,27 @@
                                     @error('personil')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                     @enderror
-                                    
+
                                     <div class="card card-body p-0" style="max-height: 300px; overflow-y: auto;">
                                         <div class="list-group list-group-flush" id="personilList">
                                             @foreach($users as $user)
                                             <div class="list-group-item user-item">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" 
-                                                        id="user{{ $user->id }}" 
-                                                        name="personil[]" 
+                                                    <input type="checkbox" class="custom-control-input"
+                                                        id="user{{ $user->id }}"
+                                                        name="personil[]"
                                                         value="{{ $user->id }}"
                                                         data-name="{{ strtolower($user->name) }}"
                                                         data-nrp="{{ strtolower($user->nrp) }}"
-                                                        {{ in_array($user->id, old('personil', [])) ? 'checked' : '' }}>
+                                                        {{ in_array($user->id, old('personil', [])) ? 'checked' : '' }}
+                                                        @if($user->sedangBertugas()) disabled @endif>
                                                     <label class="custom-control-label" for="user{{ $user->id }}">
-                                                        <span class="d-block">{{ $user->name }}</span>
+                                                        <span class="d-block">
+                                                            {{ $user->name }}
+                                                            @if($user->sedangBertugas())
+                                                            <span class="badge badge-danger">Sedang Bertugas</span>
+                                                            @endif
+                                                        </span>
                                                         <small class="text-muted">
                                                             {{ $user->pangkat }} - {{ $user->nrp }}
                                                         </small>
@@ -134,38 +140,39 @@
 </div>
 
 <style>
-.required:after {
-    content: " *";
-    color: red;
-}
-.user-item:hover {
-    background-color: #f8f9fa;
-}
+    .required:after {
+        content: " *";
+        color: red;
+    }
+
+    .user-item:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Initialize custom file input
-    bsCustomFileInput.init();
+    $(document).ready(function() {
+        // Initialize custom file input
+        bsCustomFileInput.init();
 
-    // Search functionality
-    $('#searchPersonil').on('keyup', function() {
-        const searchText = $(this).val().toLowerCase();
-        
-        $('.user-item').each(function() {
-            const $checkbox = $(this).find('input[type="checkbox"]');
-            const userName = $checkbox.data('name');
-            const userNrp = $checkbox.data('nrp');
-            
-            if (userName.includes(searchText) || userNrp.includes(searchText)) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
+        // Search functionality
+        $('#searchPersonil').on('keyup', function() {
+            const searchText = $(this).val().toLowerCase();
+
+            $('.user-item').each(function() {
+                const $checkbox = $(this).find('input[type="checkbox"]');
+                const userName = $checkbox.data('name');
+                const userNrp = $checkbox.data('nrp');
+
+                if (userName.includes(searchText) || userNrp.includes(searchText)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
         });
     });
-});
 </script>
 @endpush
 @endsection

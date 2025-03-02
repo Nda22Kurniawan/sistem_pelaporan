@@ -53,4 +53,11 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user', 'user_id', 'surat_perintah_id');
     }
+
+    public function sedangBertugas()
+    {
+        return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user', 'user_id', 'surat_perintah_id')
+            ->where('status', 'proses')
+            ->exists();
+    }
 }

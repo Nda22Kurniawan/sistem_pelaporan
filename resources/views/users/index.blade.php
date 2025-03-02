@@ -41,6 +41,7 @@
                                 <th>Jabatan</th>
                                 <th>Sub Bidang</th>
                                 <th>Status</th>
+                                <th>Status Penugasan</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -49,8 +50,8 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}" 
-                                         alt="Foto Profil" class="img-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}"
+                                        alt="Foto Profil" class="img-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                 </td>
                                 <td>{{ $user->nrp }}</td>
                                 <td>{{ $user->name }}</td>
@@ -59,9 +60,16 @@
                                 <td>{{ $user->sub_bidang }}</td>
                                 <td>
                                     @if($user->is_active)
-                                        <span class="badge badge-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                     @else
-                                        <span class="badge badge-danger">Tidak Aktif</span>
+                                    <span class="badge badge-danger">Tidak Aktif</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($user->sedangBertugas())
+                                    <span class="badge badge-warning">Sedang Bertugas</span>
+                                    @else
+                                    <span class="badge badge-secondary">Tidak Bertugas</span>
                                     @endif
                                 </td>
                                 <td>
@@ -71,8 +79,8 @@
                                     <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" 
-                                          class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?')">
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                        class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-danger btn-sm">
@@ -92,12 +100,12 @@
 @endsection
 
 <script>
-$(document).ready(function() {
-    $('#usersTable').DataTable({
-        "responsive": true,
-        "lengthChange": false,
-        "autoWidth": false,
-        "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    }).buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
-});
+    $(document).ready(function() {
+        $('#usersTable').DataTable({
+            "responsive": true,
+            "lengthChange": false,
+            "autoWidth": false,
+            "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+        }).buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
+    });
 </script>
