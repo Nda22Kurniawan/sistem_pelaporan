@@ -72,7 +72,11 @@
                                     @elseif($sprin->status === 'proses')
                                     <span class="badge badge-warning">Proses</span>
                                     @else
-                                    <span class="badge badge-secondary">Belum Mulai</span>
+                                    <span class="badge badge-danger">Belum Mulai</span>
+                                    @if(!$sprin->isFullyApproved())
+                                    <br>
+                                    <small class="text-danger">Menunggu persetujuan dari anggota terkait.</small>
+                                    @endif
                                     @endif
                                 </td>
                                 <td>
@@ -102,14 +106,21 @@
                                             </button>
                                         </form>
                                         @endif
-                                        @if(in_array(auth()->user()->role, ['KEPALA SUB BIDANG', 'ANGGOTA']) && $sprin->status === 'belum_mulai')
-                                        <form action="{{ route('sprin.update_status', $sprin->id) }}" method="POST" class="d-inline">
+                                        @if(auth()->user()->role === 'ANGGOTA')
+                                        @php
+                                        $userApproval = $sprin->penerima->where('id', auth()->id())->first()->pivot->is_approved ?? false;
+                                        @endphp
+
+                                        @if(!$userApproval)
+                                        <form action="{{ route('sprin.approve', $sprin->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-success btn-sm ml-1" title="Ubah Status ke Proses">
-                                                <i class="fas fa-play"></i>
+                                            <button type="submit" class="btn btn-success btn-sm ml-1" title="Setujui Surat">
+                                                <i class="fas fa-check"></i> Setujui
                                             </button>
                                         </form>
+                                        @else
+                                        <span class="badge badge-success">Sudah Disetujui</span>
+                                        @endif
                                         @endif
                                     </div>
                                 </td>

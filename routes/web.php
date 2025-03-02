@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('sprin', SprinController::class);
     Route::patch('/sprin/{sprin}/update-status', [SprinController::class, 'updateStatus'])->name('sprin.update_status');
+    Route::post('/sprin/{sprin}/approve', [SprinController::class, 'approve'])->name('sprin.approve');
 
     Route::resource('users', UserController::class);
     Route::resource('kegiatan', KegiatanController::class);

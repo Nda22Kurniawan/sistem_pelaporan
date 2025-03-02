@@ -204,4 +204,19 @@ class SprinController extends Controller
         return redirect()->route('sprin.index')
             ->with('success', 'Surat Perintah berhasil dihapus');
     }
+
+    public function approve(SuratPerintah $sprin)
+    {
+        $user = auth()->user();
+
+        // Update status persetujuan anggota
+        $sprin->penerima()->updateExistingPivot($user->id, ['is_approved' => true]);
+
+        // Jika semua anggota sudah menyetujui, ubah status surat menjadi "proses"
+        if ($sprin->isFullyApproved()) {
+            $sprin->update(['status' => 'proses']);
+        }
+
+        return redirect()->route('sprin.index')->with('success', 'Surat perintah telah disetujui.');
+    }
 }
