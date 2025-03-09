@@ -50,7 +50,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    <img src="{{ $user->foto_profile ? asset($user->foto_profile) : asset('assets/dist/img/user-default.jpg') }}"
+                                    <img src="{{ $user->foto_profile ? route('users.photo', $user->id) : asset('assets/dist/img/user-default.jpg') }}"
                                         alt="Foto Profil" class="img-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                 </td>
                                 <td>{{ $user->nrp }}</td>

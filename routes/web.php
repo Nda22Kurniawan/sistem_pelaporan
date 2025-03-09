@@ -34,8 +34,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('sprin', SprinController::class);
     Route::patch('/sprin/{sprin}/update-status', [SprinController::class, 'updateStatus'])->name('sprin.update_status');
     Route::post('/sprin/{sprin}/approve', [SprinController::class, 'approve'])->name('sprin.approve');
+    Route::get('/sprin/{sprin}/download', [SprinController::class, 'downloadFile'])->name('sprin.download');
 
     Route::resource('users', UserController::class);
+    Route::get('/user-photo/{id}', [UserController::class, 'showPhoto'])->name('user.photo');
+    Route::get('users/{id}/photo', [UserController::class, 'showPhoto'])->name('users.photo');
+
     Route::resource('kegiatan', KegiatanController::class);
     Route::patch('/kegiatan/{kegiatan}/update-status', [KegiatanController::class, 'updateStatus'])->name('kegiatan.update-status');
     Route::get('kegiatan/{kegiatan}/pdf', 'KegiatanController@generatePdf')->name('kegiatan.pdf');

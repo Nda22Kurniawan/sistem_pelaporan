@@ -74,7 +74,7 @@
                                     </div>
                                     <small class="text-muted">Format: PDF, DOC, DOCX. Maksimal ukuran: 2MB</small>
                                     @error('file')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -151,6 +151,7 @@
 </style>
 
 @push('scripts')
+<script src="/assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script>
     $(document).ready(function() {
         // Initialize custom file input

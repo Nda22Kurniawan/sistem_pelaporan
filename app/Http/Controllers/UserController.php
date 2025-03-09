@@ -37,12 +37,13 @@ class UserController extends Controller
         ]);
 
         if ($request->hasFile('foto_profile')) {
-            $path = $request->file('foto_profile')->store('public/profile-photos');
-            $validated['foto_profile'] = Storage::url($path);
+            // Baca file sebagai binary data
+            $fotoContent = file_get_contents($request->file('foto_profile')->path());
+            $validated['foto_profile'] = $fotoContent;
         }
 
         $validated['password'] = Hash::make($validated['password']);
-        
+
         User::create($validated);
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan');
@@ -62,9 +63,19 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
+            ],
             'password' => 'nullable|string|min:8',
-            'nrp' => ['nullable', 'string', Rule::unique('users')->ignore($user->id)],
+            'nrp' => [
+                'nullable',
+                'string',
+                Rule::unique('users')->ignore($user->id),
+            ],
             'pangkat' => 'nullable|string',
             'jabatan' => 'nullable|string',
             'sub_bidang' => 'nullable|string',
@@ -73,20 +84,18 @@ class UserController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        if ($request->hasFile('foto_profile')) {
-            // Hapus foto lama jika ada
-            if ($user->foto_profile) {
-                Storage::delete(str_replace('/storage', 'public', $user->foto_profile));
-            }
-            
-            $path = $request->file('foto_profile')->store('public/profile-photos');
-            $validated['foto_profile'] = Storage::url($path);
+        // Only update password if it's provided
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        } else {
+            $validated['password'] = Hash::make($validated['password']);
         }
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+        // Handle photo upload if provided
+        if ($request->hasFile('foto_profile')) {
+            // Baca file sebagai binary data
+            $fotoContent = file_get_contents($request->file('foto_profile')->path());
+            $validated['foto_profile'] = $fotoContent;
         }
 
         $user->update($validated);
@@ -96,12 +105,27 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->foto_profile) {
-            Storage::delete(str_replace('/storage', 'public', $user->foto_profile));
+        $user->delete();
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
+    }
+
+    public function showPhoto($id)
+    {
+        $user = User::findOrFail($id);
+
+        if (!$user->foto_profile) {
+            abort(404);
         }
 
-        $user->delete();
+        // Deteksi tipe konten (opsional, bisa ditentukan secara manual)
+        $finfo = new \finfo(FILEINFO_MIME);
+        $contentType = $finfo->buffer($user->foto_profile);
+        $contentType = explode(';', $contentType)[0]; // Mengambil hanya tipe MIME
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
+        // Atau tentukan manual
+        // $contentType = 'image/jpeg';
+
+        return response($user->foto_profile)
+            ->header('Content-Type', $contentType);
     }
 }

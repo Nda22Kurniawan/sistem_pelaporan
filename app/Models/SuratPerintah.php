@@ -17,6 +17,9 @@ class SuratPerintah extends Model
         'perihal',
         'dasar_surat',
         'file',
+        'file_content',
+        'file_name',
+        'file_mime',
         'status'
     ];
 
