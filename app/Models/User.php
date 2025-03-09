@@ -60,6 +60,7 @@ class User extends Authenticatable
         return $this->belongsToMany(Kegiatan::class, 'kegiatan_user', 'user_id', 'kegiatan_id');
     }
 
+
     public function sedangBertugas()
     {
         return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user', 'user_id', 'surat_perintah_id')
