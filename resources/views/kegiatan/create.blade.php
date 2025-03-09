@@ -36,7 +36,10 @@
                                         <option value="">Pilih Surat Perintah</option>
                                         @foreach($suratPerintahs as $surat)
                                         @if(!$surat->laporan_kegiatan)
-                                        <option value="{{ $surat->id }}" data-perihal="{{ $surat->perihal }}"
+                                        <option
+                                            value="{{ $surat->id }}"
+                                            data-perihal="{{ $surat->perihal }}"
+                                            data-personnel="{{ json_encode($surat->users->pluck('id')) }}"
                                             {{ old('surat_perintah_id') == $surat->id ? 'selected' : '' }}>
                                             {{ $surat->nomor_surat }}
                                         </option>
@@ -51,11 +54,12 @@
                                 <div class="form-group">
                                     <label for="nama_kegiatan">Nama Kegiatan</label>
                                     <input type="text" class="form-control @error('nama_kegiatan') is-invalid @enderror"
-                                        id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required>
+                                        id="nama_kegiatan" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" required readonly>
                                     @error('nama_kegiatan')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+
 
                                 <div class="form-group">
                                     <label for="deskripsi">Deskripsi</label>
@@ -100,52 +104,23 @@
 
                                 <div class="form-group">
                                     <label class="required">Personil</label>
-                                    <div class="input-group mb-3">
-                                        <input type="text" class="form-control" id="searchPenanggungJawab"
-                                            placeholder="Cari berdasarkan nama atau NRP...">
-                                        <div class="input-group-append">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-search"></i>
-                                            </span>
+                                    <!-- Hidden div to display personnel from Surat Perintah -->
+                                    <div id="personnel-container" class="mb-3">
+                                        <small class="text-muted">Personil akan ditampilkan setelah memilih Surat Perintah</small>
+                                        <div id="personnel-list" class="list-group mt-2">
+                                            <!-- Personnel will be loaded here -->
                                         </div>
                                     </div>
+                                    
+                                    <!-- Keep the hidden inputs for each personnel -->
+                                    <div id="hidden-personnel-inputs">
+                                        <!-- Hidden inputs will be generated here -->
+                                    </div>
+                                    
                                     @error('penanggung_jawab')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                     @enderror
-
-                                    <div class="card card-body p-0" style="max-height: 300px; overflow-y: auto;">
-                                        <div class="list-group list-group-flush" id="personilList">
-                                            @foreach($users as $user)
-                                            <div class="list-group-item user-item">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input"
-                                                        id="user{{ $user->id }}"
-                                                        name="penanggung_jawab[]"
-                                                        value="{{ $user->id }}"
-                                                        data-name="{{ strtolower($user->name) }}"
-                                                        data-nrp="{{ strtolower($user->nrp) }}"
-                                                        {{ in_array($user->id, old('penanggung_jawab', [])) ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="user{{ $user->id }}">
-                                                        <span class="d-block">{{ $user->name }}</span>
-                                                        <small class="text-muted">
-                                                            {{ $user->pangkat }} - {{ $user->nrp }}
-                                                        </small>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
                                 </div>
-
-                                <!-- <div class="form-group">
-                                    <label for="jumlah_peserta">Jumlah Peserta</label>
-                                    <input type="number" class="form-control @error('jumlah_peserta') is-invalid @enderror"
-                                        id="jumlah_peserta" name="jumlah_peserta" value="{{ old('jumlah_peserta') }}">
-                                    @error('jumlah_peserta')
-                                    <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div> -->
 
                                 <div class="form-group">
                                     <label for="hasil_kegiatan">Hasil Kegiatan</label>
@@ -192,19 +167,210 @@
         </div>
     </section>
 </div>
-@endsection
+
 
 @push('scripts')
+<script src="/assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script>
-    $(function() {
-        // Initialize custom file input
-        bsCustomFileInput.init();
+    $(document).ready(function() {
+    // Initialize custom file input
+    bsCustomFileInput.init();
 
-        $(".custom-file-input").on("change", function() {
-            var fileName = $(this).val().split("\\").pop();
-            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
-        });
-
+    // Create a container for previews if it doesn't exist
+    if (!$('#preview-container').length) {
+        $('.form-group:has(#image)').append('<div id="preview-container" class="row mt-3"></div>');
+    }
+    
+    // Create a container for selected files data
+    if (!$('#selected-files-container').length) {
+        $('.form-group:has(#image)').append('<div id="selected-files-container" class="d-none"></div>');
+    }
+    
+    // Store the Data Transfer object for accumulating files
+    let selectedFiles = new DataTransfer();
+    
+    // Handle file selection for multiple images
+    $("#image").on("change", function(e) {
+        const newFiles = this.files;
+        
+        // Add new files to our DataTransfer object
+        for (let i = 0; i < newFiles.length; i++) {
+            selectedFiles.items.add(newFiles[i]);
+        }
+        
+        // Update the input with all accumulated files
+        this.files = selectedFiles.files;
+        
+        // Update preview
+        updatePreview(this.files);
+        
+        // Update label with count
+        $(this).siblings(".custom-file-label").addClass("selected").html(selectedFiles.files.length + " file dipilih");
     });
+    
+    // Function to update the preview
+    function updatePreview(files) {
+        // Clear previous previews
+        $("#preview-container").empty();
+        
+        if (files.length > 0) {
+            // Generate previews for each file
+            Array.from(files).forEach(function(file, index) {
+                // Skip non-image files
+                if (!file.type.match('image.*')) {
+                    return;
+                }
+                
+                // Create preview elements
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    // Create preview card
+                    const col = $('<div class="col-md-3 col-sm-4 col-6 mb-3"></div>');
+                    const card = $('<div class="card h-100 shadow-sm"></div>');
+                    const cardBody = $('<div class="card-body p-2 text-center"></div>');
+                    const imgContainer = $('<div style="height: 120px; overflow: hidden;"></div>');
+                    const img = $(`<img src="${event.target.result}" class="img-fluid" style="object-fit: cover; height: 100%; width: 100%;">`);
+                    const fileName = $(`<p class="card-text small text-muted mt-2 mb-0">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</p>`);
+                    const fileSize = $(`<p class="card-text small text-muted">${formatFileSize(file.size)}</p>`);
+                    
+                    // Add remove button
+                    const removeBtn = $(`<button type="button" class="btn btn-sm btn-danger mt-1" data-index="${index}">Hapus</button>`);
+                    removeBtn.on('click', function() {
+                        removeFile($(this).data('index'));
+                    });
+                    
+                    // Assemble preview
+                    imgContainer.append(img);
+                    cardBody.append(fileName, fileSize, removeBtn);
+                    card.append(imgContainer, cardBody);
+                    col.append(card);
+                    $("#preview-container").append(col);
+                };
+                
+                // Read file
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+    
+    // Function to remove a file
+    function removeFile(index) {
+        const dt = new DataTransfer();
+        const input = document.getElementById('image');
+        const { files } = input;
+        
+        // Add all files except the one to remove
+        for (let i = 0; i < files.length; i++) {
+            if (i !== index) {
+                dt.items.add(files[i]);
+            }
+        }
+        
+        // Update the selected files
+        selectedFiles = dt;
+        input.files = dt.files;
+        
+        // Update preview
+        updatePreview(input.files);
+        
+        // Update label
+        if (dt.files.length > 0) {
+            $(input).siblings(".custom-file-label").addClass("selected").html(dt.files.length + " file dipilih");
+        } else {
+            $(input).siblings(".custom-file-label").removeClass("selected").html("Pilih file");
+        }
+    }
+    
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // Store all users data for quick access
+    const allUsers = {
+        @foreach($users as $user)
+        {{ $user->id }}: {
+            id: {{ $user->id }},
+            name: "{{ $user->name }}",
+            nrp: "{{ $user->nrp }}",
+            pangkat: "{{ $user->pangkat }}"
+        },
+        @endforeach
+    };
+
+    // Auto-fill Nama Kegiatan and Personnel based on selected Surat Perintah
+    $("#surat_perintah_id").on("change", function() {
+        var selectedOption = $(this).find("option:selected");
+        var perihal = selectedOption.attr("data-perihal");
+        
+        // Set nama kegiatan
+        if (perihal) {
+            $("#nama_kegiatan").val(perihal);
+        } else {
+            $("#nama_kegiatan").val("");
+        }
+        
+        // Clear previous personnel
+        $("#personnel-list").empty();
+        $("#hidden-personnel-inputs").empty();
+        
+        // Get personnel data
+        var personnelIds = [];
+        try {
+            personnelIds = JSON.parse(selectedOption.attr("data-personnel") || "[]");
+        } catch (e) {
+            console.error("Error parsing personnel data", e);
+            personnelIds = [];
+        }
+        
+        // If we have personnel, display them
+        if (personnelIds.length > 0) {
+            personnelIds.forEach(function(userId) {
+                const user = allUsers[userId];
+                if (user) {
+                    // Add to visible list
+                    $("#personnel-list").append(`
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">${user.name}</h5>
+                            </div>
+                            <p class="mb-1">${user.pangkat} - ${user.nrp}</p>
+                        </div>
+                    `);
+                    
+                    // Add hidden input for form submission
+                    $("#hidden-personnel-inputs").append(`
+                        <input type="hidden" name="penanggung_jawab[]" value="${user.id}">
+                    `);
+                }
+            });
+            
+            // Show message if no personnel
+            if ($("#personnel-list").children().length === 0) {
+                $("#personnel-list").append(`
+                    <div class="list-group-item">
+                        <p class="mb-0 text-muted">Tidak ada personil yang ditugaskan dalam surat perintah ini.</p>
+                    </div>
+                `);
+            }
+        } else {
+            $("#personnel-list").append(`
+                <div class="list-group-item">
+                    <p class="mb-0 text-muted">Tidak ada personil yang ditugaskan dalam surat perintah ini.</p>
+                </div>
+            `);
+        }
+    });
+
+    // Also trigger change on page load if there's a default selected value
+    if ($("#surat_perintah_id").val()) {
+        $("#surat_perintah_id").trigger("change");
+    }
+});
 </script>
 @endpush
+
+@endsection
