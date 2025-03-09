@@ -239,6 +239,8 @@
     <script src="/assets/plugins/pdfmake/vfs_fonts.js"></script>
     <script src="/assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
     <script>
@@ -270,6 +272,7 @@
             });
         });
     </script>
+    @stack('scripts')
 </body>
 
 </html>

@@ -38,5 +38,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('kegiatan', KegiatanController::class);
     Route::patch('/kegiatan/{kegiatan}/update-status', [KegiatanController::class, 'updateStatus'])->name('kegiatan.update-status');
+    Route::get('kegiatan/{kegiatan}/pdf', 'KegiatanController@generatePdf')->name('kegiatan.pdf');
     // Add other protected routes here...
 });

@@ -25,4 +25,15 @@ class Kegiatan extends Model
     {
         return $this->belongsTo(SuratPerintah::class);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'kegiatan_user', 'kegiatan_id', 'user_id');
+    }
+
+    // App\Models\Kegiatan.php
+    // public function images()
+    // {
+    //     return $this->hasMany(Image::class);
+    // }
 }

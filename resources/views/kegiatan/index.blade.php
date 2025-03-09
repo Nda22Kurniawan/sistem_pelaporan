@@ -177,7 +177,8 @@
             });
         });
 
-        $('.btn-success, .btn-danger, .btn-sm').on('click', function(e) {
+        // Konfirmasi update status (Diterima/Ditolak)
+        $('.status-btn').on('click', function(e) { // Ganti selektor dengan .status-btn saja
             e.preventDefault();
             var form = $(this).closest('form');
             var status = form.find('input[name="status"]').val();

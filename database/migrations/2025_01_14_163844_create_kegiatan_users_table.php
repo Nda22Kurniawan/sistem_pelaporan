@@ -12,7 +12,6 @@ class CreateKegiatanUsersTable extends Migration
             $table->id();
             $table->foreignId('kegiatan_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('peran')->nullable();
             $table->timestamps();
         });
     }

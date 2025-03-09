@@ -53,4 +53,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(SuratPerintah::class, 'surat_perintah_user', 'user_id', 'surat_perintah_id');
     }
+
+    // In the User model
+    public function kegiatans()
+    {
+        return $this->belongsToMany(Kegiatan::class, 'kegiatan_user', 'user_id', 'kegiatan_id');
+    }
 }
