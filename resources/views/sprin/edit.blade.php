@@ -22,7 +22,7 @@
     <section class="content">
         <div class="container-fluid">
             <div class="card">
-                <form action="{{ route('sprin.update', $sprin->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('sprin.update', $sprin) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="card-body">
@@ -40,7 +40,7 @@
                                 <div class="form-group">
                                     <label for="tanggal_surat" class="required">Tanggal Surat</label>
                                     <input type="date" class="form-control @error('tanggal_surat') is-invalid @enderror"
-                                        id="tanggal_surat" name="tanggal_surat" value="{{ old('tanggal_surat', $sprin->tanggal_surat ? \Carbon\Carbon::parse($sprin->tanggal_surat)->format('Y-m-d') : '') }}" required>
+                                        id="tanggal_surat" name="tanggal_surat" value="{{ old('tanggal_surat', $sprin->tanggal_surat) }}" required>
                                     @error('tanggal_surat')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -66,25 +66,24 @@
 
                                 <div class="form-group">
                                     <label for="file">File Surat</label>
+                                    @if($sprin->file_name)
+                                    <div class="mb-2">
+                                        <span>File saat ini: {{ $sprin->file_name }}</span>
+                                        <a href="{{ route('sprin.download', $sprin) }}" class="btn btn-sm btn-info ml-2">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                    @endif
                                     <div class="input-group">
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input @error('file') is-invalid @enderror"
                                                 id="file" name="file" accept=".pdf,.doc,.docx">
-                                            <label class="custom-file-label" for="file">
-                                                {{ $sprin->file ? basename($sprin->file) : 'Pilih file' }}
-                                            </label>
+                                            <label class="custom-file-label" for="file">Pilih file baru (opsional)</label>
                                         </div>
                                     </div>
                                     <small class="text-muted">Format: PDF, DOC, DOCX. Maksimal ukuran: 2MB</small>
-                                    @if($sprin->file)
-                                    <div class="mt-2">
-                                        <a href="{{ Storage::url($sprin->file) }}" target="_blank" class="btn btn-sm btn-info">
-                                            <i class="fas fa-file"></i> Lihat File Saat Ini
-                                        </a>
-                                    </div>
-                                    @endif
                                     @error('file')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -93,7 +92,7 @@
                                 <div class="form-group">
                                     <label class="required">Personil</label>
                                     <div class="input-group mb-3">
-                                        <input type="text" class="form-control" id="searchPersonil" 
+                                        <input type="text" class="form-control" id="searchPersonil"
                                             placeholder="Cari berdasarkan nama atau NRP...">
                                         <div class="input-group-append">
                                             <span class="input-group-text">
@@ -104,21 +103,27 @@
                                     @error('personil')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                     @enderror
-                                    
+
                                     <div class="card card-body p-0" style="max-height: 300px; overflow-y: auto;">
                                         <div class="list-group list-group-flush" id="personilList">
                                             @foreach($users as $user)
                                             <div class="list-group-item user-item">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" 
-                                                        id="user{{ $user->id }}" 
-                                                        name="personil[]" 
+                                                    <input type="checkbox" class="custom-control-input"
+                                                        id="user{{ $user->id }}"
+                                                        name="personil[]"
                                                         value="{{ $user->id }}"
                                                         data-name="{{ strtolower($user->name) }}"
                                                         data-nrp="{{ strtolower($user->nrp) }}"
-                                                        {{ in_array($user->id, old('personil', $sprin->users->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                                        {{ in_array($user->id, old('personil', $sprin->users->pluck('id')->toArray())) ? 'checked' : '' }}
+                                                        @if($user->sedangBertugas() && !$sprin->users->contains($user->id)) disabled @endif>
                                                     <label class="custom-control-label" for="user{{ $user->id }}">
-                                                        <span class="d-block">{{ $user->name }}</span>
+                                                        <span class="d-block">
+                                                            {{ $user->name }}
+                                                            @if($user->sedangBertugas() && !$sprin->users->contains($user->id))
+                                                            <span class="badge badge-danger">Sedang Bertugas</span>
+                                                            @endif
+                                                        </span>
                                                         <small class="text-muted">
                                                             {{ $user->pangkat }} - {{ $user->nrp }}
                                                         </small>
@@ -134,7 +139,7 @@
                     </div>
 
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Perbarui</button>
                         <a href="{{ route('sprin.index') }}" class="btn btn-secondary">Batal</a>
                     </div>
                 </form>
@@ -144,38 +149,40 @@
 </div>
 
 <style>
-.required:after {
-    content: " *";
-    color: red;
-}
-.user-item:hover {
-    background-color: #f8f9fa;
-}
+    .required:after {
+        content: " *";
+        color: red;
+    }
+
+    .user-item:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 @push('scripts')
+<script src="/assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize custom file input
-    bsCustomFileInput.init();
+    $(document).ready(function() {
+        // Initialize custom file input
+        bsCustomFileInput.init();
 
-    // Search functionality
-    $('#searchPersonil').on('keyup', function() {
-        const searchText = $(this).val().toLowerCase();
-        
-        $('.user-item').each(function() {
-            const $checkbox = $(this).find('input[type="checkbox"]');
-            const userName = $checkbox.data('name');
-            const userNrp = $checkbox.data('nrp');
-            
-            if (userName.includes(searchText) || userNrp.includes(searchText)) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
+        // Search functionality
+        $('#searchPersonil').on('keyup', function() {
+            const searchText = $(this).val().toLowerCase();
+
+            $('.user-item').each(function() {
+                const $checkbox = $(this).find('input[type="checkbox"]');
+                const userName = $checkbox.data('name');
+                const userNrp = $checkbox.data('nrp');
+
+                if (userName.includes(searchText) || userNrp.includes(searchText)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
         });
     });
-});
 </script>
 @endpush
 @endsection

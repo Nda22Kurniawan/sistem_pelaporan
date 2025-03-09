@@ -12,7 +12,7 @@
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
-                        <li class="breadcrumb-item active">Edit</li>
+                        <li class="breadcrumb-item active">Edit User</li>
                     </ol>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">Nama Lengkap</label>
+                                    <label for="name" class="required">Nama Lengkap</label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                                         id="name" name="name" value="{{ old('name', $user->name) }}" required>
                                     @error('name')
@@ -38,7 +38,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="email">Email</label>
+                                    <label for="email" class="required">Email</label>
                                     <input type="email" class="form-control @error('email') is-invalid @enderror"
                                         id="email" name="email" value="{{ old('email', $user->email) }}" required>
                                     @error('email')
@@ -134,17 +134,21 @@
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input @error('foto_profile') is-invalid @enderror"
                                                 id="foto_profile" name="foto_profile" accept=".jpeg,.jpg,.png">
-                                            <label class="custom-file-label" for="foto_profile">
-                                                {{ $user->foto_profile ? basename($user->foto_profile) : 'Pilih foto' }}
-                                            </label>
+                                            <label class="custom-file-label" for="foto_profile">Pilih foto</label>
                                         </div>
                                     </div>
-                                    <small class="text-muted">Format: JPEG, JPG, PNG. Maksimal ukuran: 2MB</small>
+                                    <small class="text-muted">Format: JPEG, JPG, PNG. Maksimal ukuran: 2MB. Kosongkan jika tidak ingin mengubah foto.</small>
+                                    
+                                    <!-- Current photo display -->
                                     @if($user->foto_profile)
-                                    <div class="mt-2">
-                                        <img src="{{ $user->foto_profile }}" alt="Foto Profile" class="img-thumbnail" style="max-width: 150px">
+                                    <div class="mt-2 mb-2">
+                                        <p class="mb-1">Foto saat ini:</p>
+                                        <img src="{{ route('users.photo', $user->id) }}" alt="Foto Profile" class="img-thumbnail" style="max-height: 150px;">
                                     </div>
                                     @endif
+                                    
+                                    <!-- Preview container -->
+                                    <div id="photo-preview-container" class="mt-2"></div>
                                     @error('foto_profile')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -175,10 +179,76 @@
     </section>
 </div>
 
+<style>
+    .required:after {
+        content: " *";
+        color: red;
+    }
+</style>
+
+@push('scripts')
+<script src="/assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
 <script>
 $(document).ready(function() {
     // Initialize custom file input
     bsCustomFileInput.init();
+    
+    // Create a container for preview if it doesn't exist
+    if (!$('#preview-container').length) {
+        $('.form-group:has(#foto_profile)').append('<div id="preview-container" class="row mt-3"></div>');
+    }
+    
+    // Handle file selection for photo
+    $("#foto_profile").on("change", function(e) {
+        const file = this.files[0];
+        
+        // Clear previous preview
+        $("#preview-container").empty();
+        
+        if (file) {
+            // Create preview for the selected image
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                // Create preview card
+                const col = $('<div class="col-md-4 col-sm-6 mb-3"></div>');
+                const card = $('<div class="card h-100 shadow-sm"></div>');
+                const cardBody = $('<div class="card-body p-2 text-center"></div>');
+                const imgContainer = $('<div style="height: 180px; overflow: hidden;"></div>');
+                const img = $(`<img src="${event.target.result}" class="img-fluid" style="object-fit: cover; height: 100%; width: 100%;">`);
+                const fileName = $(`<p class="card-text small text-muted mt-2 mb-0">${file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}</p>`);
+                const fileSize = $(`<p class="card-text small text-muted">${formatFileSize(file.size)}</p>`);
+                
+                // Add remove button
+                const removeBtn = $(`<button type="button" class="btn btn-sm btn-danger mt-1">Hapus</button>`);
+                removeBtn.on('click', function() {
+                    // Clear the file input
+                    $("#foto_profile").val('');
+                    // Update the file label
+                    $("#foto_profile").siblings(".custom-file-label").removeClass("selected").html("Pilih foto");
+                    // Remove the preview
+                    $("#preview-container").empty();
+                });
+                
+                // Assemble preview
+                imgContainer.append(img);
+                cardBody.append(fileName, fileSize, removeBtn);
+                card.append(imgContainer, cardBody);
+                col.append(card);
+                $("#preview-container").append(col);
+            };
+            
+            // Read file
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
 
     // Handle role change to show/hide and disable/enable sub_bidang
     function handleRoleChange() {
@@ -188,24 +258,36 @@ $(document).ready(function() {
         const jabatanField = $('#jabatan');
         
         if (selectedRole === 'KEPALA BIDANG') {
+            // Hide and disable sub_bidang
             subBidangGroup.hide();
             subBidangField.val('').prop('disabled', true);
-            jabatanField.val('Kepala Bidang TIK');
+            
+            // Set jabatan value
+            jabatanField.val('Kepala Bidang TIK').prop('readonly', true);
         } else {
+            // Show and enable sub_bidang
             subBidangGroup.show();
             subBidangField.prop('disabled', false);
-            // Clear jabatan field only if it contains "Kepala Bidang TIK"
+            
+            // Enable jabatan field and clear if it was set to Kepala Bidang TIK
+            jabatanField.prop('readonly', false);
             if (jabatanField.val() === 'Kepala Bidang TIK') {
                 jabatanField.val('');
             }
         }
     }
 
-    // Initial check
+    // Initial check when page loads
     handleRoleChange();
 
     // Listen for role changes
     $('#role').on('change', handleRoleChange);
+
+    // Trigger change event on page load if role is already selected
+    if ($('#role').val() === 'KEPALA BIDANG') {
+        $('#role').trigger('change');
+    }
 });
 </script>
+@endpush
 @endsection
