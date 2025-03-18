@@ -30,8 +30,8 @@
                                 <a href="{{ route('kegiatan.edit', $kegiatan->id) }}" class="btn btn-sm btn-primary">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
-                                <a href="{{ route('kegiatan.pdf', $kegiatan->id) }}" class="btn btn-sm btn-danger" target="_blank">
-                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                <a href="{{ route('kegiatan.preview-pdf', $kegiatan->id) }}" class="btn btn-sm btn-danger" target="_blank">
+                                    <i class="fas fa-file-pdf"></i> Preview PDF
                                 </a>
                             </div>
                         </div>
@@ -112,7 +112,11 @@
 
                             <h5 class="mt-4 mb-3">Hasil Kegiatan</h5>
                             <div class="callout callout-success">
-                                <p>{{ $kegiatan->hasil_kegiatan ?? 'Tidak ada hasil kegiatan' }}</p>
+                                @if($kegiatan->hasil_kegiatan)
+                                    {!! nl2br(e($kegiatan->hasil_kegiatan)) !!}
+                                @else
+                                    <p>Tidak ada hasil kegiatan</p>
+                                @endif
                             </div>
 
                             <h5 class="mt-4 mb-3">Kesimpulan</h5>
