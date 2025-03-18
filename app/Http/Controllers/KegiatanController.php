@@ -78,7 +78,7 @@ class KegiatanController extends Controller
                 'tanggal_mulai' => $validatedData['tanggal_mulai'],
                 'tanggal_selesai' => $validatedData['tanggal_selesai'],
                 'lokasi' => $validatedData['lokasi'],
-                'penanggung_jawab' => $penanggungJawabNames,  
+                'penanggung_jawab' => $penanggungJawabNames,
                 'hasil_kegiatan' => $validatedData['hasil_kegiatan'] ?? null,
                 'kesimpulan' => $validatedData['kesimpulan'] ?? null,
                 'image' => $imageUploads ? json_encode($imageUploads) : null
@@ -242,5 +242,27 @@ class KegiatanController extends Controller
         $pdf = PDF::loadView('kegiatan.pdf', compact('kegiatan'));
         $pdf->setPaper('a4', 'portrait');
         return $pdf->download('laporan-kegiatan-' . $kegiatan->id . '.pdf');
+    }
+
+    public function previewPdf(Kegiatan $kegiatan)
+    {
+        $kegiatan->load(['suratPerintah', 'users']);
+        $kegiatan->image = $kegiatan->image ? json_decode($kegiatan->image) : [];
+
+        // Update path to match your folder structure
+        $logo_path = public_path('images/logo-polri.png');
+        $logo_polri = null;
+
+        if (file_exists($logo_path)) {
+            $logo_polri = base64_encode(file_get_contents($logo_path));
+        }
+
+        $pdf = PDF::loadView('kegiatan.pdf', [
+            'kegiatan' => $kegiatan,
+            'logo_polri' => $logo_polri
+        ]);
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('laporan-kegiatan-' . $kegiatan->id . '.pdf');
     }
 }

@@ -176,6 +176,162 @@
     // Initialize custom file input
     bsCustomFileInput.init();
 
+    if (!$('#daily-results-container').length) {
+        $('#hasil_kegiatan').parent().before(`
+            <div class="form-group">
+                <label for="daily-results-container">Hasil Kegiatan Harian</label>
+                <div id="daily-results-container" class="card">
+                    <div class="card-body">
+                        <p class="text-muted" id="no-dates-message">Silakan pilih tanggal mulai dan tanggal selesai terlebih dahulu</p>
+                        <div id="daily-entries-list">
+                            <!-- Daily entries will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    // Function to generate daily entry fields
+    function generateDailyEntries() {
+        const startDate = new Date($('#tanggal_mulai').val());
+        const endDate = new Date($('#tanggal_selesai').val());
+        
+        // Clear previous entries
+        $('#daily-entries-list').empty();
+        
+        // Validate dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            $('#no-dates-message').show();
+            return;
+        }
+        
+        if (startDate > endDate) {
+            $('#daily-entries-list').append(`
+                <div class="alert alert-warning">
+                    Tanggal mulai tidak boleh lebih besar dari tanggal selesai
+                </div>
+            `);
+            $('#no-dates-message').hide();
+            return;
+        }
+        
+        // Hide the message since we have valid dates
+        $('#no-dates-message').hide();
+        
+        // Loop through each day in the range
+        const currentDate = new Date(startDate);
+        let index = 0;
+        
+        while (currentDate <= endDate) {
+            const formattedDate = currentDate.toISOString().split('T')[0];
+            const dayName = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(currentDate);
+            const formattedDisplayDate = new Intl.DateTimeFormat('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            }).format(currentDate);
+            
+            // Create input for each day
+            $('#daily-entries-list').append(`
+                <div class="daily-entry card mb-3">
+                    <div class="card-header bg-light">
+                        <strong>${dayName}, ${formattedDisplayDate}</strong>
+                    </div>
+                    <div class="card-body">
+                        <textarea 
+                            class="form-control daily-result" 
+                            rows="3" 
+                            data-date="${formattedDate}" 
+                            placeholder="Masukkan hasil kegiatan untuk tanggal ini"
+                        ></textarea>
+                    </div>
+                </div>
+            `);
+            
+            // Move to next day
+            currentDate.setDate(currentDate.getDate() + 1);
+            index++;
+        }
+
+        // Add event listener to compile all results
+        $('.daily-result').on('input', compileResults);
+    }
+
+    // Function to compile all daily results into the main hasil_kegiatan field
+    function compileResults() {
+        let compiledResults = '';
+        
+        $('.daily-entry').each(function() {
+            const date = $(this).find('.daily-result').data('date');
+            const dayName = $(this).find('.card-header strong').text();
+            const content = $(this).find('.daily-result').val().trim();
+            
+            if (content) {
+                compiledResults += `${dayName}:\n${content}\n\n`;
+            }
+        });
+        
+        // Update the main hasil_kegiatan textarea
+        $('#hasil_kegiatan').val(compiledResults.trim());
+    }
+
+    // Listen for changes to the date fields
+    $('#tanggal_mulai, #tanggal_selesai').on('change', function() {
+        generateDailyEntries();
+    });
+
+    // Initialize the form if dates are already set (e.g., from old input)
+    if ($('#tanggal_mulai').val() && $('#tanggal_selesai').val()) {
+        generateDailyEntries();
+        
+        // If there's existing hasil_kegiatan data, try to parse and distribute it
+        const existingData = $('#hasil_kegiatan').val();
+        if (existingData) {
+            // This is a simple attempt to parse existing data back into daily entries
+            // It assumes a format like "Day, Date: Content"
+            const lines = existingData.split('\n');
+            let currentEntry = '';
+            let currentDate = '';
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Check if this line starts a new entry
+                if (line.includes(':') && (line.includes('Senin') || line.includes('Selasa') || 
+                    line.includes('Rabu') || line.includes('Kamis') || line.includes('Jumat') || 
+                    line.includes('Sabtu') || line.includes('Minggu'))) {
+                    
+                    // Extract the date information
+                    const dateInfo = line.split(':')[0].trim();
+                    
+                    // Find the textarea for this date and populate it
+                    $('.daily-entry').each(function() {
+                        if ($(this).find('.card-header strong').text() === dateInfo) {
+                            // Found the right textarea, wait for next iterations to get content
+                            currentDate = dateInfo;
+                            currentEntry = '';
+                        }
+                    });
+                } else if (currentDate) {
+                    // Add this line to the current entry
+                    currentEntry += (currentEntry ? '\n' : '') + line;
+                    
+                    // If next line is empty or we're at the end, save this entry
+                    if (!lines[i+1] || i === lines.length - 1) {
+                        $('.daily-entry').each(function() {
+                            if ($(this).find('.card-header strong').text() === currentDate) {
+                                $(this).find('.daily-result').val(currentEntry.trim());
+                                currentDate = '';
+                                currentEntry = '';
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+
     // Create a container for previews if it doesn't exist
     if (!$('#preview-container').length) {
         $('.form-group:has(#image)').append('<div id="preview-container" class="row mt-3"></div>');

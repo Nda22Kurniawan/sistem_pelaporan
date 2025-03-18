@@ -114,12 +114,12 @@
                                             <span class="badge badge-warning">Review</span>
                                             @endif
                                         </td>
-                                        @if(auth()->user()->role !== 'KEPALA BIDANG')
                                         <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('kegiatan.show', $kegiatan->id) }}" class="btn btn-info btn-sm">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                @if(auth()->user()->role !== 'KEPALA BIDANG')
                                                 <a href="{{ route('kegiatan.edit', $kegiatan->id) }}" class="btn btn-warning btn-sm">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -130,9 +130,9 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
+                                                @endif
                                             </div>
                                         </td>
-                                        @endif
                                     </tr>
                                     @empty
                                     <tr>
