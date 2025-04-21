@@ -40,6 +40,7 @@
                                 <th>Tanggal</th>
                                 <th>Perihal</th>
                                 <th>Personil</th>
+                                <th>Sumber Dana</th>
                                 <th>Status</th>
                                 <th>File</th>
                                 <th>Aksi</th>
@@ -67,6 +68,13 @@
                                     @endif
                                 </td>
                                 <td>
+                                    @if($sprin->sumber_dana === 'anggaran')
+                                    <span class="badge badge-success">Anggaran</span>
+                                    @else
+                                    <span class="badge badge-secondary">Non-Anggaran</span>
+                                    @endif
+                                </td>
+                                <td>
                                     @if($sprin->status === 'selesai')
                                     <span class="badge badge-success">Selesai</span>
                                     @elseif($sprin->status === 'proses')
@@ -75,7 +83,7 @@
                                     <span class="badge badge-danger">Belum Mulai</span>
                                     @if(!$sprin->isFullyApproved())
                                     <br>
-                                    <small class="text-danger">Menunggu persetujuan dari anggota terkait.</small>
+                                    <small class="text-danger">Menunggu kesiapan dari anggota terkait.</small>
                                     @endif
                                     @endif
                                 </td>
@@ -114,12 +122,12 @@
                                         @if(!$userApproval)
                                         <form action="{{ route('sprin.approve', $sprin->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-sm ml-1" title="Setujui Surat">
-                                                <i class="fas fa-check"></i> Setujui
+                                            <button type="submit" class="btn btn-success btn-sm ml-1" title="Siap Dilaksanakan">
+                                                <i class="fas fa-check"></i> Siap Dilaksanakan
                                             </button>
                                         </form>
                                         @else
-                                        <span class="badge badge-success">Sudah Disetujui</span>
+                                        <span class="badge badge-success">Dilaksanakan</span>
                                         @endif
                                         @endif
                                     </div>

@@ -20,7 +20,8 @@ class SuratPerintah extends Model
         'file_content',
         'file_name',
         'file_mime',
-        'status'
+        'status',
+        'sumber_dana'
     ];
 
     protected $casts = [
@@ -29,7 +30,8 @@ class SuratPerintah extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'surat_perintah_user');
+        return $this->belongsToMany(User::class, 'surat_perintah_user')
+            ->withPivot('is_approved');
     }
 
     // Relationship with Kegiatan

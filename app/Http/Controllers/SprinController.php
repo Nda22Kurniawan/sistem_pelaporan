@@ -68,16 +68,17 @@ class SprinController extends Controller
             'perihal' => 'required|string|max:255',
             'dasar_surat' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'personil' => 'required|array|min:1'
+            'personil' => 'required|array|min:1',
+            'sumber_dana' => 'required|in:anggaran,non_anggaran'
         ]);
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            
+
             // Simpan file di storage untuk referensi/backup
             $path = $file->store('surat-perintah', 'public');
             $validated['file'] = $path;
-            
+
             // Simpan konten file di database
             $validated['file_content'] = base64_encode(file_get_contents($file->getRealPath()));
             $validated['file_name'] = $file->getClientOriginalName();
@@ -140,19 +141,20 @@ class SprinController extends Controller
             'perihal' => 'required|string|max:255',
             'dasar_surat' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'personil' => 'required|array|min:1'
+            'personil' => 'required|array|min:1',
+            'sumber_dana' => 'required|in:anggaran,non_anggaran'
         ]);
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            
+
             // Simpan di storage untuk referensi/backup
             if ($sprin->file) {
                 Storage::disk('public')->delete($sprin->file);
             }
             $path = $file->store('surat-perintah', 'public');
             $validated['file'] = $path;
-            
+
             // Simpan konten file di database
             $validated['file_content'] = base64_encode(file_get_contents($file->getRealPath()));
             $validated['file_name'] = $file->getClientOriginalName();
@@ -229,9 +231,9 @@ class SprinController extends Controller
             return redirect()->back()
                 ->with('error', 'File tidak ditemukan');
         }
-        
+
         $fileContent = base64_decode($sprin->file_content);
-        
+
         return response($fileContent)
             ->header('Content-Type', $sprin->file_mime)
             ->header('Content-Disposition', 'attachment; filename="' . $sprin->file_name . '"');
@@ -249,6 +251,6 @@ class SprinController extends Controller
             $sprin->update(['status' => 'proses']);
         }
 
-        return redirect()->route('sprin.index')->with('success', 'Surat perintah telah disetujui.');
+        return redirect()->route('sprin.index')->with('success', 'Surat perintah siap dilaksanakan.');
     }
 }

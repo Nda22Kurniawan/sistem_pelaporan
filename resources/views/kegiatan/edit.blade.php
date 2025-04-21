@@ -33,7 +33,7 @@
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="surat_perintah_id">Nomor Surat Perintah</label>
-                                    <input type="text" class="form-control" 
+                                    <input type="text" class="form-control"
                                         value="{{ $kegiatan->suratPerintah->nomor_surat }}" readonly>
                                     <input type="hidden" name="surat_perintah_id" value="{{ $kegiatan->surat_perintah_id }}">
                                 </div>
@@ -89,6 +89,12 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="sumber_dana">Sumber Dana</label>
+                                    <input type="text" class="form-control" id="sumber_dana" name="sumber_dana_tampil"
+                                        value="{{ $kegiatan->suratPerintah->sumber_dana === 'anggaran' ? 'Anggaran' : 'Non-Anggaran' }}" readonly>
+                                </div>
+
+                                <div class="form-group">
                                     <label class="required">Personil</label>
                                     <div id="personnel-list" class="list-group mt-2">
                                         @foreach($kegiatan->users as $user)
@@ -101,7 +107,7 @@
                                         </div>
                                         @endforeach
                                     </div>
-                                    
+
                                     @error('penanggung_jawab')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                     @enderror
@@ -202,20 +208,33 @@
             `);
         }
 
+        $('#surat_perintah_id').on('change', function() {
+            var selectedOption = $(this).find('option:selected');
+            var sumberDana = selectedOption.attr('data-sumber-dana');
+
+            if (sumberDana === 'anggaran') {
+                $('#sumber_dana').val('Anggaran');
+            } else if (sumberDana === 'non_anggaran') {
+                $('#sumber_dana').val('Non-Anggaran');
+            } else {
+                $('#sumber_dana').val('');
+            }
+        });
+
         // Function to generate daily entry fields
         function generateDailyEntries() {
             const startDate = new Date($('#tanggal_mulai').val());
             const endDate = new Date($('#tanggal_selesai').val());
-            
+
             // Clear previous entries
             $('#daily-entries-list').empty();
-            
+
             // Validate dates
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                 $('#no-dates-message').show();
                 return;
             }
-            
+
             if (startDate > endDate) {
                 $('#daily-entries-list').append(`
                     <div class="alert alert-warning">
@@ -225,23 +244,25 @@
                 $('#no-dates-message').hide();
                 return;
             }
-            
+
             // Hide the message since we have valid dates
             $('#no-dates-message').hide();
-            
+
             // Loop through each day in the range
             const currentDate = new Date(startDate);
             let index = 0;
-            
+
             while (currentDate <= endDate) {
                 const formattedDate = currentDate.toISOString().split('T')[0];
-                const dayName = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(currentDate);
-                const formattedDisplayDate = new Intl.DateTimeFormat('id-ID', { 
-                    day: '2-digit', 
-                    month: 'long', 
-                    year: 'numeric' 
+                const dayName = new Intl.DateTimeFormat('id-ID', {
+                    weekday: 'long'
                 }).format(currentDate);
-                
+                const formattedDisplayDate = new Intl.DateTimeFormat('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                }).format(currentDate);
+
                 // Create input for each day
                 $('#daily-entries-list').append(`
                     <div class="daily-entry card mb-3">
@@ -258,7 +279,7 @@
                         </div>
                     </div>
                 `);
-                
+
                 // Move to next day
                 currentDate.setDate(currentDate.getDate() + 1);
                 index++;
@@ -271,17 +292,17 @@
         // Function to compile all daily results into the main hasil_kegiatan field
         function compileResults() {
             let compiledResults = '';
-            
+
             $('.daily-entry').each(function() {
                 const date = $(this).find('.daily-result').data('date');
                 const dayName = $(this).find('.card-header strong').text();
                 const content = $(this).find('.daily-result').val().trim();
-                
+
                 if (content) {
                     compiledResults += `${dayName}:\n${content}\n\n`;
                 }
             });
-            
+
             // Update the main hasil_kegiatan textarea
             $('#hasil_kegiatan').val(compiledResults.trim());
         }
@@ -294,7 +315,7 @@
         // Initialize the form if dates are already set (e.g., from old input)
         if ($('#tanggal_mulai').val() && $('#tanggal_selesai').val()) {
             generateDailyEntries();
-            
+
             // If there's existing hasil_kegiatan data, try to parse and distribute it
             const existingData = $('#hasil_kegiatan').val();
             if (existingData) {
@@ -303,18 +324,18 @@
                 const lines = existingData.split('\n');
                 let currentEntry = '';
                 let currentDate = '';
-                
+
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    
+
                     // Check if this line starts a new entry
-                    if (line.includes(':') && (line.includes('Senin') || line.includes('Selasa') || 
-                        line.includes('Rabu') || line.includes('Kamis') || line.includes('Jumat') || 
-                        line.includes('Sabtu') || line.includes('Minggu'))) {
-                        
+                    if (line.includes(':') && (line.includes('Senin') || line.includes('Selasa') ||
+                            line.includes('Rabu') || line.includes('Kamis') || line.includes('Jumat') ||
+                            line.includes('Sabtu') || line.includes('Minggu'))) {
+
                         // Extract the date information
                         const dateInfo = line.split(':')[0].trim();
-                        
+
                         // Find the textarea for this date and populate it
                         $('.daily-entry').each(function() {
                             if ($(this).find('.card-header strong').text() === dateInfo) {
@@ -326,9 +347,9 @@
                     } else if (currentDate) {
                         // Add this line to the current entry
                         currentEntry += (currentEntry ? '\n' : '') + line;
-                        
+
                         // If next line is empty or we're at the end, save this entry
-                        if (!lines[i+1] || i === lines.length - 1) {
+                        if (!lines[i + 1] || i === lines.length - 1) {
                             $('.daily-entry').each(function() {
                                 if ($(this).find('.card-header strong').text() === currentDate) {
                                     $(this).find('.daily-result').val(currentEntry.trim());
@@ -346,39 +367,39 @@
         if (!$('#preview-container').length) {
             $('.form-group:has(#image)').append('<div id="preview-container" class="row mt-3"></div>');
         }
-        
+
         // Create a container for selected files data
         if (!$('#selected-files-container').length) {
             $('.form-group:has(#image)').append('<div id="selected-files-container" class="d-none"></div>');
         }
-        
+
         // Store the Data Transfer object for accumulating files
         let selectedFiles = new DataTransfer();
-        
+
         // Handle file selection for multiple images
         $("#image").on("change", function(e) {
             const newFiles = this.files;
-            
+
             // Add new files to our DataTransfer object
             for (let i = 0; i < newFiles.length; i++) {
                 selectedFiles.items.add(newFiles[i]);
             }
-            
+
             // Update the input with all accumulated files
             this.files = selectedFiles.files;
-            
+
             // Update preview
             updatePreview(this.files);
-            
+
             // Update label with count
             $(this).siblings(".custom-file-label").addClass("selected").html(selectedFiles.files.length + " file dipilih");
         });
-        
+
         // Function to update the preview
         function updatePreview(files) {
             // Clear previous previews
             $("#preview-container").empty();
-            
+
             if (files.length > 0) {
                 // Generate previews for each file
                 Array.from(files).forEach(function(file, index) {
@@ -386,10 +407,10 @@
                     if (!file.type.match('image.*')) {
                         return;
                     }
-                    
+
                     // Create preview elements
                     const reader = new FileReader();
-                    
+
                     reader.onload = function(event) {
                         // Create preview card
                         const col = $('<div class="col-md-3 col-sm-4 col-6 mb-3"></div>');
@@ -399,13 +420,13 @@
                         const img = $(`<img src="${event.target.result}" class="img-fluid" style="object-fit: cover; height: 100%; width: 100%;">`);
                         const fileName = $(`<p class="card-text small text-muted mt-2 mb-0">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</p>`);
                         const fileSize = $(`<p class="card-text small text-muted">${formatFileSize(file.size)}</p>`);
-                        
+
                         // Add remove button
                         const removeBtn = $(`<button type="button" class="btn btn-sm btn-danger mt-1" data-index="${index}">Hapus</button>`);
                         removeBtn.on('click', function() {
                             removeFile($(this).data('index'));
                         });
-                        
+
                         // Assemble preview
                         imgContainer.append(img);
                         cardBody.append(fileName, fileSize, removeBtn);
@@ -413,33 +434,35 @@
                         col.append(card);
                         $("#preview-container").append(col);
                     };
-                    
+
                     // Read file
                     reader.readAsDataURL(file);
                 });
             }
         }
-        
+
         // Function to remove a file
         function removeFile(index) {
             const dt = new DataTransfer();
             const input = document.getElementById('image');
-            const { files } = input;
-            
+            const {
+                files
+            } = input;
+
             // Add all files except the one to remove
             for (let i = 0; i < files.length; i++) {
                 if (i !== index) {
                     dt.items.add(files[i]);
                 }
             }
-            
+
             // Update the selected files
             selectedFiles = dt;
             input.files = dt.files;
-            
+
             // Update preview
             updatePreview(input.files);
-            
+
             // Update label
             if (dt.files.length > 0) {
                 $(input).siblings(".custom-file-label").addClass("selected").html(dt.files.length + " file dipilih");
@@ -447,7 +470,7 @@
                 $(input).siblings(".custom-file-label").removeClass("selected").html("Pilih file");
             }
         }
-        
+
         // Helper function to format file size
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' B';

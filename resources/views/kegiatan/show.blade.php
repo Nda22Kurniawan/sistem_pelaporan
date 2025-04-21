@@ -24,16 +24,25 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Detail Laporan Kegiatan</h3>
-                            <div class="card-tools">
-                                <a href="{{ route('kegiatan.edit', $kegiatan->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <a href="{{ route('kegiatan.preview-pdf', $kegiatan->id) }}" class="btn btn-sm btn-danger" target="_blank">
-                                    <i class="fas fa-file-pdf"></i> Preview PDF
-                                </a>
-                            </div>
+                        <div class="card-tools d-flex justify-content-end align-items-center gap-2 flex-wrap pe-3 pt-2">
+                            @php
+                            $isAnggota = auth()->user()->role === 'ANGGOTA';
+                            $status = $kegiatan->status;
+                            @endphp
+
+                            @if(($isAnggota && in_array($status, ['Review', 'Ditolak'])) || !$isAnggota)
+                            <a href="{{ route('kegiatan.edit', $kegiatan->id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            @elseif($isAnggota && $status === 'Diterima')
+                            <span class="text-muted small d-inline-flex align-items-center pr-2">
+                                <i class="fas fa-lock mr-1 text-warning"></i> Laporan sudah diterima. Tidak dapat diedit.
+                            </span>
+                            @endif
+
+                            <a href="{{ route('kegiatan.preview-pdf', $kegiatan->id) }}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-file-pdf"></i> Preview PDF
+                            </a>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -82,6 +91,13 @@
                                 <p>{{ $kegiatan->deskripsi ?? 'Tidak ada deskripsi' }}</p>
                             </div>
 
+                            <h5 class="mt-4 mb-3">Sumber Dana</h5>
+                            <div class="callout callout-secondary">
+                                <p>
+                                    {{ $kegiatan->suratPerintah->sumber_dana === 'anggaran' ? 'Anggaran' : 'Non-Anggaran' }}
+                                </p>
+                            </div>
+
                             <h5 class="mt-4 mb-3">Personil</h5>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-hover">
@@ -113,9 +129,9 @@
                             <h5 class="mt-4 mb-3">Hasil Kegiatan</h5>
                             <div class="callout callout-success">
                                 @if($kegiatan->hasil_kegiatan)
-                                    {!! nl2br(e($kegiatan->hasil_kegiatan)) !!}
+                                {!! nl2br(e($kegiatan->hasil_kegiatan)) !!}
                                 @else
-                                    <p>Tidak ada hasil kegiatan</p>
+                                <p>Tidak ada hasil kegiatan</p>
                                 @endif
                             </div>
 
