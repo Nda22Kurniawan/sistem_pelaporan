@@ -56,6 +56,21 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label>Sumber Dana</label><br>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sumber_dana" id="anggaran" value="anggaran" {{ old('sumber_dana') == 'anggaran' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="anggaran">Anggaran</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sumber_dana" id="non_anggaran" value="non_anggaran" {{ old('sumber_dana', 'non_anggaran') == 'non_anggaran' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="non_anggaran">Non-Anggaran</label>
+                                    </div>
+                                    @error('sumber_dana')
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
                                     <label for="dasar_surat">Dasar Surat</label>
                                     <textarea class="form-control @error('dasar_surat') is-invalid @enderror"
                                         id="dasar_surat" name="dasar_surat" rows="3">{{ old('dasar_surat', $sprin->dasar_surat) }}</textarea>

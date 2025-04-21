@@ -52,6 +52,7 @@
                                         <th>Nama Kegiatan</th>
                                         <th>Tanggal</th>
                                         <th>Lokasi</th>
+                                        <th>Sumber Dana</th>
                                         <th>Penanggung Jawab</th>
                                         <th>Status</th>
                                         @if(auth()->user()->role !== 'KEPALA BIDANG')
@@ -71,6 +72,13 @@
                                             {{ \Carbon\Carbon::parse($kegiatan->tanggal_selesai)->format('d M Y') }}
                                         </td>
                                         <td>{{ $kegiatan->lokasi }}</td>
+                                        <td>
+                                            @if($kegiatan->suratPerintah && $kegiatan->suratPerintah->sumber_dana === 'anggaran')
+                                            <span class="badge badge-success">Anggaran</span>
+                                            @else
+                                            <span class="badge badge-secondary">Non-Anggaran</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             @php
                                             $responsiblePersons = explode(', ', $kegiatan->penanggung_jawab);
@@ -119,11 +127,17 @@
                                                 <a href="{{ route('kegiatan.show', $kegiatan->id) }}" class="btn btn-info btn-sm">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                @if(auth()->user()->role !== 'KEPALA BIDANG')
+
+                                                @php
+                                                $isAnggota = auth()->user()->role === 'ANGGOTA';
+                                                $status = $kegiatan->status;
+                                                @endphp
+
+                                                @if(($isAnggota && in_array($status, ['Review', 'Ditolak'])) || !$isAnggota)
                                                 <a href="{{ route('kegiatan.edit', $kegiatan->id) }}" class="btn btn-warning btn-sm">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('kegiatan.destroy', $kegiatan->id) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('kegiatan.destroy', $kegiatan->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus laporan ini?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger btn-sm delete-btn">

@@ -55,6 +55,20 @@
                                             <td>{{ $sprin->perihal }}</td>
                                         </tr>
                                         <tr>
+                                            <th>Sumber Dana</th>
+                                            <td>
+                                                @if($sprin->sumber_dana === 'anggaran')
+                                                <span class="badge badge-success">Anggaran</span>
+                                                @else
+                                                <span class="badge badge-secondary">Non-Anggaran</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Dasar Surat</th>
+                                            <td>{!! nl2br(e($sprin->dasar_surat)) !!}</td>
+                                        </tr>
+                                        <tr>
                                             <th>Status</th>
                                             <td>
                                                 @if($sprin->status == 'belum_mulai')
@@ -65,10 +79,6 @@
                                                 <span class="badge badge-success">Selesai</span>
                                                 @endif
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Dasar Surat</th>
-                                            <td>{!! nl2br(e($sprin->dasar_surat)) !!}</td>
                                         </tr>
                                         <tr>
                                             <th>File Surat</th>
@@ -127,18 +137,13 @@
                                                                 @endphp
 
                                                                 @if($approved)
-                                                                <span class="badge badge-success">Disetujui</span>
+                                                                @if($sprin->status == 'selesai')
+                                                                <span class="badge badge-success">Dilaksanakan</span>
                                                                 @else
-                                                                @if(auth()->id() == $user->id && $sprin->status == 'belum_mulai')
-                                                                <form action="{{ route('sprin.approve', $sprin->id) }}" method="POST" class="d-inline">
-                                                                    @csrf
-                                                                    <button type="submit" class="btn btn-xs btn-primary">
-                                                                        Setujui
-                                                                    </button>
-                                                                </form>
-                                                                @else
-                                                                <span class="badge badge-warning">Menunggu Persetujuan</span>
+                                                                <span class="badge badge-primary">Siap Dilaksanakan</span>
                                                                 @endif
+                                                                @else
+                                                                <span class="badge badge-warning">Menunggu Kesiapan</span>
                                                                 @endif
                                                             </td>
                                                         </tr>
