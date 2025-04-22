@@ -39,8 +39,8 @@
 
                                 <div class="form-group">
                                     <label for="tanggal_surat" class="required">Tanggal Surat</label>
-                                    <input type="date" class="form-control @error('tanggal_surat') is-invalid @enderror"
-                                        id="tanggal_surat" name="tanggal_surat" value="{{ old('tanggal_surat', $sprin->tanggal_surat) }}" required>
+                                    <input type="date" name="tanggal_surat" class="form-control"
+                                        value="{{ old('tanggal_surat', \Carbon\Carbon::parse($sprin->tanggal_surat)->format('Y-m-d')) }}">
                                     @error('tanggal_surat')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -56,17 +56,21 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Sumber Dana</label><br>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="sumber_dana" id="anggaran" value="anggaran" {{ old('sumber_dana') == 'anggaran' ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="anggaran">Anggaran</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="sumber_dana" id="non_anggaran" value="non_anggaran" {{ old('sumber_dana', 'non_anggaran') == 'non_anggaran' ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="non_anggaran">Non-Anggaran</label>
+                                    <label for="sumber_dana">Sumber Dana</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="sumber_dana" id="anggaran"
+                                                value="anggaran" {{ old('sumber_dana', $sprin->sumber_dana) == 'anggaran' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="anggaran">Anggaran</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="sumber_dana" id="non_anggaran"
+                                                value="non_anggaran" {{ old('sumber_dana', $sprin->sumber_dana) == 'non_anggaran' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="non_anggaran">Non-Anggaran</label>
+                                        </div>
                                     </div>
                                     @error('sumber_dana')
-                                    <div class="text-danger">{{ $message }}</div>
+                                    <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
 
