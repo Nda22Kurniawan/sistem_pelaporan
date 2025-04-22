@@ -23,7 +23,7 @@
         }
 
         .header-text {
-            text-align: left;
+            text-align: center;
             margin-bottom: 30px;
         }
 
@@ -208,6 +208,17 @@
         <div class="title">II. TUGAS YANG DILAKSANAKAN</div>
         <div class="sub-section">
             <p>1. {{ $kegiatan->deskripsi ?? 'Mengikuti Kegiatan' }} bertempat di {{ $kegiatan->lokasi ?? '-' }} dengan personil sebagai berikut :</p>
+
+            <p style="margin-left: 20px;">
+                <strong>Sumber Dana:</strong>
+                @if($kegiatan->suratPerintah && $kegiatan->suratPerintah->sumber_dana === 'anggaran')
+                Anggaran
+                @elseif($kegiatan->suratPerintah && $kegiatan->suratPerintah->sumber_dana === 'non_anggaran')
+                Non-Anggaran
+                @else
+                Tidak Ditentukan
+                @endif
+            </p>
 
             @forelse($kegiatan->users as $index => $user)
             <div class="sub-section-letter">
